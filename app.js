@@ -1,12 +1,6 @@
 $(function(){
 
-  window.Block = Backbone.Model.extend({}, {
-    create: function(model, options) {
-      model.isNew() && App.collection.add(model);
-      options || (options = {});
-      model.save(null, options)
-    }
-  });
+  window.Block = Backbone.Model.extend({}, {});
 
   window.BlockList = Backbone.Collection.extend({
     model: Block,
@@ -25,11 +19,15 @@ $(function(){
 
       var that = this;
       $(document).bind('keydown', 'shift', function() {
-        that.$el.find('.block').draggable('option', 'helper', 'clone');
+        that.$el.find('.block')
+          .draggable('option', 'helper', 'clone')
+          .resizable('option', 'aspectRatio', true);
         c.log('Block draggable helper: clone');
       });
       $(document).bind('keyup', 'shift', function() {
-        that.$el.find('.block').draggable('option', 'helper', 'original');
+        that.$el.find('.block')
+          .draggable('option', 'helper', 'original')
+          .resizable('option', 'aspectRatio', false);
         c.log('Block draggable: set helper: original');
       });
     },
@@ -46,22 +44,51 @@ $(function(){
   window.BlockView = Backbone.View.extend({
 
     initialize: function() {
+
+      this.model.view = this; // bind current view to its model
+      
       this.model
         .bind('destroy', function() {
           this.$el.remove();
         }, this)
         .bind('sync', function() {
+          c.log('synced ', this.model.attributes);
           this.$el.replaceWith(this.render().$el)
         }, this)
         .bind('edit', function() {
           new EditView({model: this.model}).render();
         }, this)
+        .bind('select', function() {
+          _.each(App.collection.models, function(model) {
+            model.trigger('deselect');
+          });
+          var that = this;
+          this.model.selected = true;
+          $("html, body").animate(
+            {
+	      scrollTop: that.$el.position().top + "px",
+              scrollLeft: that.$el.position().left + "px"
+	    },
+            {
+	      duration: 150,
+	      easing: "swing",
+              complete: function() {
+                that.$el.css('background', 'yellow');
+              }
+	    }
+          );
+
+        }, this)
+        .bind('deselect', function() {
+          this.model.selected = false;
+          this.$el.css('background', '');
+        }, this)
         .bind('delete', function() { // not the same to the 'remove' event
           confirm("Sure?") && this.model.destroy(); 
         }, this)
         .bind('change', function() {
-          this.model.hasChanged() && Block.create(this.model);
-        }, this);
+          c.log('Changed attributes:', this.model.changedAttributes());
+        },this);
     },
 
     events: {
@@ -71,6 +98,9 @@ $(function(){
       },
       'mouseleave': function(e) {
         this.toolbox.remove();
+      },
+      'click': function(e) {
+        this.model.trigger('select');
       },
       'dblclick': function(e) {
         e.stopPropagation();
@@ -91,22 +121,33 @@ $(function(){
         snap: true,
         snapMode: 'both',
         snapTollerance: 10,
-        //stack: '.block',
+        //stack: '.block',        
         //zIndex: 5000,
         stop: function(e, ui) {
           glv.fadeOut(); glh.fadeOut();
           if(e.shiftKey) {
-            var model = that.model.clone().unset('id').set(ui.position);
-            Block.create(model);
+            var new_model = that.model.clone().unset('id').set(ui.position, {silent:true});
+            App.collection.add(new_model);
+            new_model.save();
           } else {
-            that.model.set(ui.position);
+            that.model.save(ui.position);
           }
         },
         drag: function(e, ui) {
           glv.css('left', ui.offset.left+'px').show('fast');
           glh.css('top', ui.offset.top+'px').show('fast');
         }
-      });
+      })
+        .resizable({
+          autoHide: true,
+          minHeight: 100,
+          minWidth: 100,
+          grid: [5,5],
+          containment: 'parent',
+          stop: function(e, ui) {
+            that.model.save(ui.size);
+          }
+        });
       return this;
     }
 
@@ -115,10 +156,10 @@ $(function(){
   window.BlockToolboxView = Backbone.View.extend({
     events: {
       'click .edit': function(e) {
-	      this.model.trigger('edit');
+	this.model.trigger('edit');
       },
       'click .remove': function(e) {
-	      this.model.trigger('delete');
+	this.model.trigger('delete');
       } 
     },
     initialize: function() {
@@ -133,6 +174,10 @@ $(function(){
 
     initialize: function() {
       var that = this;
+      var save_model = function(model) {
+        if(model.isNew()) App.collection.add(model);
+	model.save({'text':that.$el.find('textarea').val()});
+      };
       that.setElement($(Mustache.render($('#template-editbox').html(), that.model.toJSON())));
       that.$el.find('textarea')
         .bind('keydown', 'esc', function() {
@@ -141,13 +186,12 @@ $(function(){
         })
         .bind('keydown', 'ctrl+s', function(e) {
           e.preventDefault();
-	        that.model.set({'text':that.$el.find('textarea').val()});
-	        Block.create(that.model, {});
+          save_model(that.model);
           return false;
         })
         .bind('keydown', _.debounce(function(){
-          that.model.set({'text': that.$el.find('textarea').val()});
-	      }, 1000));
+          save_model(that.model);
+	}, 1000));
     },
 
     render: function() {
