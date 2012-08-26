@@ -25,6 +25,7 @@ $(function(){
         e.stopPropagation();
         new EditView({model:new Block({top:e.pageY, left:e.pageX, text:''})}).render();
       });
+      this.collection.fetch();
 
       var that = this;
       $(document).bind('keydown', 'shift', function() {
@@ -37,18 +38,13 @@ $(function(){
       });
     },
 
-    render: function() {
-      this.collection.fetch();
-      return this;
-    },
-
     addAll: function(models) {
       models.each(this.addOne);
     },
 
     addOne: function(model) {
       var view = new BlockView({model:model});
-      App.$el.append(view.render().el);
+      $('#page').append(view.render().el);
     },
 
   });
@@ -149,35 +145,29 @@ $(function(){
 
       that.$el.find('textarea')
         .bind('keydown', 'esc', function() {
-          // keyboard events has no element argument passed in
-          if(!$.trim(that.$el.find('textarea').text()).length) {
-            that.close();
-            return false;
-          }
-    /*
-	  Block.create(that.model, {
-	    success:function(){
-	      that.close();
-	    }
-	  });
-          */
+          that.close();
           return false;
+          // Block.create(that.model, {
+	        // success:function(){
+	        // that.close();
+	        // }
+	        // });
         })
         .bind('keydown', 'ctrl+s', function(e) {
           e.preventDefault();
-	  that.model.set({'text':that.$el.find('textarea').val()});
-	  Block.create(that.model, {});
+	        that.model.set({'text':that.$el.find('textarea').val()});
+	        Block.create(that.model, {});
           return false;
         })
         .bind('keydown', _.debounce(function(){
-	  var oldText = that.model.get('text'),
-	  newText = that.$el.find('textarea').val();
+	        var oldText = that.model.get('text'),
+	        newText = that.$el.find('textarea').val();
 
-	  if(oldText != newText) {
-	    that.model.set({'text':newText});
-	    Block.create(that.model, {});
-	  }
-	}, 1250));
+	        if(oldText != newText) {
+	          that.model.set({'text':newText});
+	          Block.create(that.model, {});
+	        }
+	      }, 1000));
     },
 
     render: function() {
@@ -186,8 +176,8 @@ $(function(){
         .appendTo($('body'))
         .draggable()
         .animate({
-          top: '+=100',
-          left: '+=100'
+          top: '+=25',
+          left: '+=25'
         })
         .find('textarea').focus();
     },
