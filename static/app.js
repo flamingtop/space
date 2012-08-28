@@ -95,16 +95,16 @@ $(function(){
           this.model.selected = true;
           $("html, body").animate(
             {
-	      scrollTop: that.$el.position().top + "px",
-              scrollLeft: that.$el.position().left + "px"
-	    },
+              scrollTop: (that.$el.position().top - 20) + "px",
+              scrollLeft: (that.$el.position().left - 20) + "px"
+            },
             {
-	      duration: 150,
-	      easing: "swing",
+              duration: 150,
+              easing: "swing",
               complete: function() {
                 that.$el.css('background', 'yellow');
               }
-	    }
+            }
           );
 
         }, this)
@@ -129,8 +129,7 @@ $(function(){
         this.toolbox.remove();
       },
       'click': function(e) {
-        if(!e.ctrlKey) {
-          e.preventDefault();
+        if(!e.altKey) {
           return false;
         }
         if(this.model.selected)

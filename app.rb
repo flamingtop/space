@@ -52,16 +52,18 @@ end
 
 get '/page/:slug' do
   page   = Page.by_slug(params[:slug])
-  if page.nil? and session[:uid]
+  if page.nil?
+    redirect '/user/signin' unless session[:uid]
     page = Page.new({:slug => params[:slug]}).save
-  end
-  user = User.by_id(session[:uid])
-  if user.can_edit_page?(page)
-    blocks = page.load_blocks
-    headers "Content-Type" => "text/html"
-    erb :page, :locals => {:page => page.to_s, :blocks => blocks.to_s}
   else
-    'cant edit'
+    user = User.by_id(session[:uid])
+    if user.can_edit_page?(page)
+      blocks = page.load_blocks
+      headers "Content-Type" => "text/html"
+      erb :page, :locals => {:page => page.to_s, :blocks => blocks.to_s}
+    else
+      'cant edit'
+    end
   end
 end
 

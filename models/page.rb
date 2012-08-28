@@ -127,14 +127,18 @@ class Node
   end
 
   def self.by_id(id)
-    node = @@db.get_node_index(IDX_ID, :id, id)
-    return nil if node.nil?
-    self.new(node)
+    begin
+      node = @@db.get_node_index(IDX_ID, :id, id)
+    rescue => ex
+      nil
+    else
+      self.new(node)
+    end
   end
 
   # populate node variables from a hash or json object
   def reset(data)
-    if data.first.is_a? Hash and data.first['data']
+    if data.respond_to?('first') and data.first.is_a? Hash and data.first['data']
       @node = data
       data = data.first['data']
     end
@@ -172,9 +176,13 @@ class Page < Node
   end
 
   def self.by_slug(slug)
-    page = @@db.get_node_index(IDX_PAGE, :slug, slug)
-    return nil if page.nil?
-    Page.new(page)
+    begin
+      page = @@db.get_node_index(IDX_PAGE, :slug, slug)
+    rescue => ex
+      nil
+    else
+      Page.new(page)
+    end
   end
 
   def create
@@ -240,9 +248,13 @@ class User < Node
   end
 
   def self.by_email(email)
-    node = @@db.get_node_index(IDX_USER, :email, email)
-    return nil if node.nil?
-    User.new(node)
+    begin 
+      node = @@db.get_node_index(IDX_USER, :email, email)
+    rescue => ex
+      nil
+    else
+      User.new(node)
+    end
   end
 
   def self.by_email_passwd(email, password)
