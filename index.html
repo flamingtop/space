@@ -30,6 +30,8 @@
     <script src="backbone/backbone.js"></script>
     <script src="Backbone.localStorage/backbone.localStorage.js"></script>
     <script src="mustache.js/mustache.js"></script>		
+    <script src="c.js"></script>
+    <script src="jquery.hotkeys.js"></script>
     <script src="app.js"></script>
 
   </head>
@@ -39,12 +41,13 @@
     <!--templates-->
     <script type="text/template" id="template-editbox">
       <div style="position:absolute;top:{{top}}px;left:{{left}}px">
-	<textarea rows="20" cols="60" style="border:1px solid #ccc">{{text}}</textarea>
+	<textarea rows="12" cols="50" style="background:#eee;border:0;padding:1em;">{{text}}</textarea>
         <!-- no buttons 
              <div class="buttons" style="text-align:right;display:none;background:yellow;border:1px solid #ccc;">
                <button class="save">Save</button>
                <button class="close">Close</button>
              </div> -->
+        <div class="autosave-indicator" style="display:none;position:absolute;bottom:10px;left:10px;background:#000;color:#fff;padding:.1em;">saved</div>
       </div>
     </script>
     <script type="text/template" id="template-blockview">
@@ -56,8 +59,10 @@
       <ul class="block-toolbox">
         <li class="edit"><a href="#">edit</a></li>
         <li class="remove"><a href="#">remove</a></li>
+        <!--
         <li class="comment"><a href="#">comment</a></li>
         <li class="duplicate"><a href="#">duplicate</a></li>
+        -->
       </ul>
     </script>
   </body>
