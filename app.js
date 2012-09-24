@@ -29,9 +29,11 @@ $(function(){
       var that = this;
       $(document).bind('keydown', 'shift', function() {
         that.$el.find('.block').draggable('option', 'helper', 'clone');
+        c.log('Block draggable helper: clone');
       });
       $(document).bind('keyup', 'shift', function() {
         that.$el.find('.block').draggable('option', 'helper', 'original');
+        c.log('Block draggable: set helper: original');
       });
     },
 
@@ -88,6 +90,13 @@ $(function(){
       this.setElement(Mustache.render($('#template-blockview').html(), this.model.toJSON()));
       this.$el.draggable({
         opacity: 0.4,
+        grid: [5,5],
+        scroll: false,
+        snap: true,
+        snapMode: 'both',
+        snapTollerance: 10,
+        //stack: '.block',
+        //zIndex: 5000,
 	stop: function(e, ui) {
           if(e.shiftKey) {
             var model = that.model.clone().unset('id').set(ui.position);
@@ -95,7 +104,13 @@ $(function(){
           } else {
             that.model.save(ui.position);
           }
-	}
+          $('#glv').fadeOut();
+          $('#glh').fadeOut();
+	},
+        drag: function(e, ui) {
+          $('#glv').css('left', ui.offset.left+'px').fadeIn();
+          $('#glh').css('top', ui.offset.top+'px').fadeIn();
+        }
       });
       return this;
     }
@@ -139,11 +154,13 @@ $(function(){
             that.close();
             return false;
           }
+    /*
 	  Block.create(that.model, {
 	    success:function(){
 	      that.close();
 	    }
 	  });
+          */
           return false;
         })
         .bind('keydown', 'ctrl+s', function(e) {
