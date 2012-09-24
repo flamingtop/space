@@ -1,0 +1,7 @@
+* duplicate block
+* cycling blocks
+* visual aid for dragging
+* personal in-box
+* carousel 
+* master page
+  
