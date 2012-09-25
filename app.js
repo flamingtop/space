@@ -44,6 +44,9 @@ $(function(){
   window.BlockView = Backbone.View.extend({
 
     initialize: function() {
+
+      this.model.view = this; // bind current view to its model
+      
       this.model
         .bind('destroy', function() {
           this.$el.remove();
@@ -54,6 +57,31 @@ $(function(){
         }, this)
         .bind('edit', function() {
           new EditView({model: this.model}).render();
+        }, this)
+        .bind('select', function() {
+          _.each(App.collection.models, function(model) {
+            model.trigger('deselect');
+          });
+          var that = this;
+          this.model.selected = true;
+          $("html, body").animate(
+            {
+	      scrollTop: that.$el.position().top + "px",
+              scrollLeft: that.$el.position().left + "px"
+	    },
+            {
+	      duration: 150,
+	      easing: "swing",
+              complete: function() {
+                that.$el.css('background', 'yellow');
+              }
+	    }
+          );
+
+        }, this)
+        .bind('deselect', function() {
+          this.model.selected = false;
+          this.$el.css('background', '');
         }, this)
         .bind('delete', function() { // not the same to the 'remove' event
           confirm("Sure?") && this.model.destroy(); 
@@ -70,6 +98,9 @@ $(function(){
       },
       'mouseleave': function(e) {
         this.toolbox.remove();
+      },
+      'click': function(e) {
+        this.model.trigger('select');
       },
       'dblclick': function(e) {
         e.stopPropagation();
