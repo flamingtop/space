@@ -95,7 +95,7 @@ $(function(){
         snap: true,
         snapMode: 'both',
         snapTollerance: 10,
-        //stack: '.block',
+        //stack: '.block',        
         //zIndex: 5000,
 	stop: function(e, ui) {
           if(e.shiftKey) {
@@ -111,7 +111,8 @@ $(function(){
           $('#glv').css('left', ui.offset.left+'px').fadeIn();
           $('#glh').css('top', ui.offset.top+'px').fadeIn();
         }
-      });
+      })
+        .resizable();
       return this;
     }
 
@@ -149,18 +150,20 @@ $(function(){
 
       that.$el.find('textarea')
         .bind('keydown', 'esc', function() {
+
+          that.close();
+
           // keyboard events has no element argument passed in
-          if(!$.trim(that.$el.find('textarea').text()).length) {
-            that.close();
-            return false;
-          }
-    /*
-	  Block.create(that.model, {
-	    success:function(){
-	      that.close();
-	    }
-	  });
-          */
+          // if(!$.trim(that.$el.find('textarea').text()).length) {
+          //   that.close();
+          //   return false;
+          // }
+	  // Block.create(that.model, {
+	  //   success:function(){
+	  //     that.close();
+	  //   }
+	  // });
+
           return false;
         })
         .bind('keydown', 'ctrl+s', function(e) {
