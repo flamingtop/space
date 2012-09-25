@@ -11,18 +11,27 @@
     #page .block .content pre {margin:0; padding:0;}
     #page .block:hover{cursor:pointer}
     #page .block-toolbox {
-	position:absolute;
-	top:50%;
-	left:25%;
-	margin:0;
-	padding:0;
-	text-align:center;
-	width:50%;
-	background:#444;
+        position:absolute;
+        top:60%;
+        left:60%;
+        margin:0;
+        padding:.6em;
+        width:auto;
+        background:#fff;
+        font-weight:bold;
+        -moz-opacity:.85;
+        filter:alpha(opacity=85);
+        opacity:.85;
+        -moz-border-radius: 5px;
+        border-radius: 5px;
+        font-family: sans-serif;
+        color: #666;
+        -moz-box-shadow:    3px 3px 3px 3px #333;
+        -webkit-box-shadow: 3px 3px 3px 3px #333;
+        box-shadow:         3px 3px 3px 3px #333;
     }
-    #page .block-toolbox li {display:inline; margin:0; padding:0 5px;}
-    #page .block-toolbox li a{color:#fff;text-decoration:none;}
-    #page .block-toolbox li a:hover{color:red;}
+    #page .block-toolbox li {display:block; margin:0; padding:0 5px;}
+    #page .block-toolbox li:hover{color:#000;}
     .editview {
       -moz-opacity:.85;
       filter:alpha(opacity=85);
@@ -30,15 +39,14 @@
       padding:.5em;
       -moz-border-radius: 5px;
       border-radius: 5px;
-      -moz-box-shadow:    3px 3px 3px 3px #ccc;
-      -webkit-box-shadow: 3px 3px 3px 3px #ccc;
-      box-shadow:         3px 3px 3px 3px #ccc;
+      -moz-box-shadow:    3px 3px 3px 3px #333;
+      -webkit-box-shadow: 3px 3px 3px 3px #333;
+      box-shadow:         3px 3px 3px 3px #333;
       background-color:#fff;
     }
     .editview textarea {
       outline: 0;
       border: 0;
-      font-size:1.2em;
       background-color:#fff;
     }
     </style>
@@ -58,20 +66,19 @@
     <div id="page"></div><!-- app container -->
     
     <div id="guidelines" style="width:100px;">
-      <div id="glv" style="position:absolute;width:2px;height:100%;top:0;left:0;background:#ccc;border:0;padding:0"></div>
-      <div id="glh" style="position:absolute;width:100%;height:1px;top:0;left:0;background:#ccc;border:0;padding:0"></div>
+      <div id="glv" style="position:absolute;width:1px;height:100%;top:0;left:0;background:#eee;border:0;padding:0"></div>
+      <div id="glh" style="position:absolute;width:100%;height:1px;top:0;left:0;background:#eee;border:0;padding:0"></div>
     </div><!-- drag guide lines -->
 
     <!--templates-->
     <script type="text/template" id="template-editbox">
       <div class="editview" style="position:absolute;top:{{top}}px;left:{{left}}px">
-	<textarea rows="18" cols="50">{{text}}</textarea>
+      <textarea rows="18" cols="50" placeholder="Type your stuff here"">{{text}}</textarea>
         <!-- no buttons 
              <div class="buttons" style="text-align:right;display:none;background:yellow;border:1px solid #ccc;">
                <button class="save">Save</button>
                <button class="close">Close</button>
              </div> -->
-        <div class="autosave-indicator" style="display:none;position:absolute;bottom:10px;left:10px;background:#000;color:#fff;padding:.1em;">saved</div>
       </div>
     </script>
     <script type="text/template" id="template-blockview">
@@ -81,12 +88,10 @@
     </script>
     <script type="text/template" id="template-blockview-toolbox">
       <ul class="block-toolbox">
-        <li class="edit"><a href="#">edit</a></li>
-        <li class="remove"><a href="#">remove</a></li>
-        <!--
-        <li class="comment"><a href="#">comment</a></li>
-        <li class="duplicate"><a href="#">duplicate</a></li>
-        -->
+        <li class="edit">Edit</li>
+        <li class="remove">Remove</li>
+        <li class="comment">Comment</li>
+        <li class="publish">Publish</li>
       </ul>
     </script>
   </body>
