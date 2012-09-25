@@ -4,7 +4,7 @@ $(function(){
     create: function(model, options) {
       model.isNew() && App.collection.add(model);
       options || (options = {});
-      model.save(null, options)
+      model.save({}, options);
     }
   });
 
@@ -25,11 +25,15 @@ $(function(){
 
       var that = this;
       $(document).bind('keydown', 'shift', function() {
-        that.$el.find('.block').draggable('option', 'helper', 'clone');
+        that.$el.find('.block')
+          .draggable('option', 'helper', 'clone')
+          .resizable('option', 'aspectRatio', true);
         c.log('Block draggable helper: clone');
       });
       $(document).bind('keyup', 'shift', function() {
-        that.$el.find('.block').draggable('option', 'helper', 'original');
+        that.$el.find('.block')
+          .draggable('option', 'helper', 'original')
+          .resizable('option', 'aspectRatio', false);
         c.log('Block draggable: set helper: original');
       });
     },
@@ -51,6 +55,7 @@ $(function(){
           this.$el.remove();
         }, this)
         .bind('sync', function() {
+          c.log('synced ', this.model.attributes);
           this.$el.replaceWith(this.render().$el)
         }, this)
         .bind('edit', function() {
@@ -60,8 +65,8 @@ $(function(){
           confirm("Sure?") && this.model.destroy(); 
         }, this)
         .bind('change', function() {
-          this.model.hasChanged() && Block.create(this.model);
-        }, this);
+          c.log('Changed attributes:', this.model.changedAttributes());
+        },this);
     },
 
     events: {
@@ -96,10 +101,11 @@ $(function(){
         stop: function(e, ui) {
           glv.fadeOut(); glh.fadeOut();
           if(e.shiftKey) {
-            var model = that.model.clone().unset('id').set(ui.position);
-            Block.create(model);
+            var new_model = that.model.clone().unset('id').set(ui.position, {silent:true});
+            App.collection.add(new_model);
+            new_model.save();
           } else {
-            that.model.set(ui.position);
+            that.model.save(ui.position);
           }
         },
         drag: function(e, ui) {
@@ -107,7 +113,16 @@ $(function(){
           glh.css('top', ui.offset.top+'px').show('fast');
         }
       })
-        .resizable();
+        .resizable({
+          autoHide: true,
+          minHeight: 100,
+          minWidth: 100,
+          grid: [5,5],
+          containment: 'parent',
+          stop: function(e, ui) {
+            that.model.save(ui.size);
+          }
+        });
       return this;
     }
 
@@ -134,6 +149,10 @@ $(function(){
 
     initialize: function() {
       var that = this;
+      var save_model = function(model) {
+        if(model.isNew()) App.collection.add(model);
+	model.save({'text':that.$el.find('textarea').val()});
+      };
       that.setElement($(Mustache.render($('#template-editbox').html(), that.model.toJSON())));
       that.$el.find('textarea')
         .bind('keydown', 'esc', function() {
@@ -142,12 +161,11 @@ $(function(){
         })
         .bind('keydown', 'ctrl+s', function(e) {
           e.preventDefault();
-	  that.model.set({'text':that.$el.find('textarea').val()});
-	  Block.create(that.model, {});
+          save_model(that.model);
           return false;
         })
         .bind('keydown', _.debounce(function(){
-          that.model.set({'text': that.$el.find('textarea').val()});
+          save_model(that.model);
 	}, 1000));
     },
 
