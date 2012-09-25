@@ -116,10 +116,10 @@ $(function(){
   window.BlockToolboxView = Backbone.View.extend({
     events: {
       'click .edit': function(e) {
-	      this.model.trigger('edit');
+	this.model.trigger('edit');
       },
       'click .remove': function(e) {
-	      this.model.trigger('delete');
+	this.model.trigger('delete');
       } 
     },
     initialize: function() {
@@ -142,13 +142,13 @@ $(function(){
         })
         .bind('keydown', 'ctrl+s', function(e) {
           e.preventDefault();
-	        that.model.set({'text':that.$el.find('textarea').val()});
-	        Block.create(that.model, {});
+	  that.model.set({'text':that.$el.find('textarea').val()});
+	  Block.create(that.model, {});
           return false;
         })
         .bind('keydown', _.debounce(function(){
           that.model.set({'text': that.$el.find('textarea').val()});
-	      }, 1000));
+	}, 1000));
     },
 
     render: function() {
