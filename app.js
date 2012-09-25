@@ -1,12 +1,6 @@
 $(function(){
 
-  window.Block = Backbone.Model.extend({}, {
-    create: function(model, options) {
-      model.isNew() && App.collection.add(model);
-      options || (options = {});
-      model.save({}, options);
-    }
-  });
+  window.Block = Backbone.Model.extend({}, {});
 
   window.BlockList = Backbone.Collection.extend({
     model: Block,
