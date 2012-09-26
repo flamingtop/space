@@ -49,6 +49,14 @@
       border: 0;
       background-color:#fff;
     }
+    .editview .close {
+      font-weight:bold;
+      -moz-border-radius: 5px;
+      border-radius: 5px;
+      background:#fff;
+      border:1px solid #eee;
+    }
+    .clear{ clear:both: }
     </style>
 
     <script src="jquery-1.7.2.min.js"></script><!-- load this first, ref: backbone.js line 42 -->
@@ -73,12 +81,9 @@
     <!--templates-->
     <script type="text/template" id="template-editbox">
       <div class="editview" style="position:absolute;top:{{top}}px;left:{{left}}px">
-      <textarea rows="18" cols="50" placeholder="Type your stuff here"">{{text}}</textarea>
-        <!-- no buttons 
-             <div class="buttons" style="text-align:right;display:none;background:yellow;border:1px solid #ccc;">
-               <button class="save">Save</button>
-               <button class="close">Close</button>
-             </div> -->
+        <button class="close" style="float:right;">x</button>
+        <div class="clear"></div>
+        <textarea rows="10" cols="50" placeholder="Type your stuff here"">{{text}}</textarea>
       </div>
     </script>
     <script type="text/template" id="template-blockview">
