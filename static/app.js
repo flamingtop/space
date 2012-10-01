@@ -1,5 +1,3 @@
-
-
 $(function(){
 
   window.Block = Backbone.Model.extend();
@@ -19,8 +17,16 @@ $(function(){
   });
 
   window.AppView = Backbone.View.extend({
+    
     el: $('#page'),
+    
     initialize: function() {
+      this.model.fetch({
+        success: function(model, resp) {
+          document.title = resp.title;
+        }
+      });
+
       this.collection.bind('reset', this.addAll, this);
       this.collection.bind('add', this.addOne, this);
       this.$el.bind('dblclick', function(e) {
@@ -256,7 +262,10 @@ $(function(){
 
 
   // Instance of the Application
-  window.App = (new AppView({collection:new BlockList()})).render();
+  window.App = (new AppView({
+    collection: new BlockList(),
+    model: new Page({id:page_id})
+  })).render();
   
   // Bootstrap Block List
   /*  App.collection.reset([

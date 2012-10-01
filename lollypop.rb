@@ -5,10 +5,10 @@ require 'neography'
 
 #class App < SInatra::Base
 
-set :public_folder, File.dirname(__FILE__) + '/..'
+set :public_folder, File.dirname(__FILE__) + '/static'
 
 before do
-  headers "Content-Type" => "text/plain"
+  headers "Content-Type" => "application/json"
 end
 
 def initialize
@@ -16,7 +16,11 @@ def initialize
 end
 
 get '/page/:id' do
-  JSON.pretty_generate @neo.get_node_auto_index(:id, params[:id]).first['data']
+  if !request.xhr? 
+    headers "Content-Type" => "text/html"
+    return erb :index, :locals => {:page_id => params[:id]}
+  end
+  return JSON.pretty_generate @neo.get_node_auto_index(:id, params[:id]).first['data']
 #  @neo.execute_query("start n=node:node_auto_index(id='xyz123') return n").to_s
 #  @neo.list_node_indexes.to_s
 #  query = "start n=node() return n";
