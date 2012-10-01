@@ -1,13 +1,16 @@
 $(function(){
 
-  window.Block = Backbone.Model.extend();
+  window.Block = Backbone.Model.extend({
+    urlRoot: 'http://localhost:9393/block'
+  });
   window.Page  = Backbone.Model.extend({
     urlRoot: 'http://localhost:9393/page'
   });
 
   window.BlockList = Backbone.Collection.extend({
     model: Block,
-    localStorage: new Store('page')
+    url: 'http://localhost:9393/page/' + page_id + '/blocks'
+    // localStorage: new Store('page')
   }, {
     selected: function() {
       return _.filter(App.collection.models, function(model){

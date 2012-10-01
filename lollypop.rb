@@ -21,35 +21,22 @@ get '/page/:id' do
     return erb :index, :locals => {:page_id => params[:id]}
   end
   return JSON.pretty_generate @neo.get_node_auto_index(:id, params[:id]).first['data']
-#  @neo.execute_query("start n=node:node_auto_index(id='xyz123') return n").to_s
-#  @neo.list_node_indexes.to_s
-#  query = "start n=node() return n";
-#  nodes = @neo.execute_query(query, {})
-#  nodes['data'].first.first['data'].to_s
-#  nodes['data'].to_s
 end
-
+get '/page/:id/blocks' do
+  blocks = []
+  blocks.push({:id => 'b-111', :top => 29, :left => 149, :text => 'hello world', :html => '<h3>hello world</h3>'})
+  blocks.push({:id => 'b-222', :top => 100, :left => 30, :text => 'block 2', :html => %{\
+<img src="http://www.blogcdn.com/www.thatsfit.com/media/2007/10/nendo_lollypop.jpg" width="200px" />
+<center style="background-color:#333; color:#fff;padding:.2em;">Lollypop</center>
+  }})
+  JSON.pretty_generate blocks
+end
 post '/page' do
-  page = {
-    :type   => "page",
-    :title  => "Page 1",
-    :width  => "auto",
-    :height => "auto"
-  }
-  neo = Neography::Rest.new
-  #node = neo.create_node(page);
-  #YAML::dump(node)
-  node = neo.get_node(9)
-  #neo.set_node_properties(node, {"points" => 400, "title" => "Page 2", "foo" => ['b', 'a', 'r']})
-  YAML::dump(node)
 end
-
 put '/page/:id' do
 end
-
 delete '/page/:id' do
-  neo = Neography::Rest.new
-  neo.delete_node(params[:id]);
+  @neo.delete_node(params[:id]);
 end
 
 post '/block' do
