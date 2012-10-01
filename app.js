@@ -1,12 +1,16 @@
+
+
 $(function(){
 
-  window.Block = Backbone.Model.extend({}, {});
+  window.Block = Backbone.Model.extend();
+  window.Page  = Backbone.Model.extend({
+    urlRoot: 'http://localhost:9393/page'
+  });
 
   window.BlockList = Backbone.Collection.extend({
     model: Block,
     localStorage: new Store('page')
-  },
-  {
+  }, {
     selected: function() {
       return _.filter(App.collection.models, function(model){
         return model.selected;
@@ -120,7 +124,10 @@ $(function(){
         this.toolbox.remove();
       },
       'click': function(e) {
-        if(!e.ctrlKey) return false;
+        if(!e.ctrlKey) {
+          e.preventDefault();
+          return false;
+        }
         if(this.model.selected)
           this.model.trigger('deselect', e);
         else
