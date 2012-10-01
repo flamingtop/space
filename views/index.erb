@@ -47,7 +47,6 @@
     </script>
 
 
-    <script>var page_id="<%= page_id %>";</script>
     <!-- load this first, ref: backbone.js line 42 -->
     <script src="/jquery-1.7.2.min.js"></script>
     <script src="/jquery-ui/js/jquery-ui-1.8.21.custom.min.js"></script>    
@@ -58,6 +57,17 @@
     <script src="/c.js"></script>
     <script src="/jquery.hotkeys.js"></script>
     <script src="/app.js"></script>
+
+    <script id="bootstrap">
+    $(function(){
+      var page =<%= page %>;
+      var blocks = <%= blocks %>;
+      window.App = (new AppView({
+        collection: new BlockList(blocks),
+        model: new Page(page)
+      })).render();
+    });
+    </script>
 
   </body>
 </html>

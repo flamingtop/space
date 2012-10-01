@@ -9,7 +9,7 @@ $(function(){
 
   window.BlockList = Backbone.Collection.extend({
     model: Block,
-    url: 'http://localhost:9393/page/' + page_id + '/blocks'
+    url: 'http://localhost:9393/page/' + page.id + '/blocks'
     // localStorage: new Store('page')
   }, {
     selected: function() {
@@ -24,18 +24,12 @@ $(function(){
     el: $('#page'),
     
     initialize: function() {
-      this.model.fetch({
-        success: function(model, resp) {
-          document.title = resp.title;
-        }
-      });
 
-      this.collection.bind('reset', this.addAll, this);
-      this.collection.bind('add', this.addOne, this);
+      this.collection.bind('add', this._add, this);
+      
       this.$el.bind('dblclick', function(e) {
         new EditView({model:new Block({top:e.pageY, left:e.pageX, text:''})}).render();
       });
-      this.collection.fetch();
 
       var that = this;
       $(document)
@@ -60,12 +54,14 @@ $(function(){
           
         });
     },
-    addAll: function(models) {
-      models.each(this.addOne);
+    render: function() {
+      _.each(this.collection.models, function(item, idx) {
+        this._add(item);
+      }, this);
+      return this;
     },
-    addOne: function(model) {
-      var view = new BlockView({model:model});
-      $('#page').append(view.render().el);
+    _add: function(model) {
+      $('#page').append((new BlockView({model:model})).render().el);
     }
   });
 
@@ -262,20 +258,6 @@ $(function(){
     }
 
   });
-
-
-  // Instance of the Application
-  window.App = (new AppView({
-    collection: new BlockList(),
-    model: new Page({id:page_id})
-  })).render();
-  
-  // Bootstrap Block List
-  /*  App.collection.reset([
-      {text:'hello', top:100, left:20},
-      {text:'hello', top:200, left:80},    
-      ]);
-  */
 
 });
 
