@@ -1,45 +1,61 @@
 require 'sinatra'
 require 'json'
 require 'yaml'
-require 'neography'
+require './models/page.rb'
 
 #class App < SInatra::Base
 
 set :public_folder, File.dirname(__FILE__) + '/static'
 
+get '/test' do
+  p = Page.load_by_id('xyz123')
+  p.load_blocks.to_s
+end
+
 before do
   headers "Content-Type" => "application/json"
 end
 
-def initialize
-  @neo = Neography::Rest.new
-end
 
 get '/page/:id' do
-  page = @neo.get_node_auto_index(:id, params[:id]).first['data']
-  blocks = []
-  blocks.push({:id => 'b-111', :top => 29, :left => 149, :text => 'hello world', :html => '<h3>hello world</h3>'})
-  blocks.push({:id => 'b-222', :top => 100, :left => 30, :text => 'block 2', :html => %{\
-<img src="http://www.blogcdn.com/www.thatsfit.com/media/2007/10/nendo_lollypop.jpg" width="200px" />
-<center style="background-color:#333; color:#fff;padding:.2em;">Lollypop</center>
-  }})
-  
+
+=begin
+neo4j auto unique index: not possible, too much hassel 
+ruby unique id
+rename the project 
+
+:id exists 
+  i can edit? load the page and continue editing
+  i can't edit ? load the page, show me what I can see
+:id not exist
+  create the page, initialize it for editing
+  create relationship between the new page and me(user)
+
+=end
+
+  page = Page.load_by_id(params[:id])
+  blocks = page.load_blocks
   headers "Content-Type" => "text/html"
-  erb :index, :locals => {:page => JSON.generate(page), :blocks => JSON.generate(blocks)}
+  erb :index, :locals => {:page => page.to_s, :blocks => blocks.to_s}
 end
 post '/page' do
 end
 put '/page/:id' do
 end
 delete '/page/:id' do
-  @neo.delete_node(params[:id]);
 end
 
-post '/block' do
+post '/page/:pid/block' do
+  page  = Page.load_by_id(params[:pid])
+  block = page.add_block JSON.parse(request.body.read)
+  block.to_s
 end
-put '/block/:id' do
+put '/page/:pid/block/:bid' do
 end
-delete '/block/:id' do
+delete '/page/:pid/block/:bid' do
+  block = Block.load_by_id(params[:bid])
+  block.delete
+  'OK'
 end
 
 #end

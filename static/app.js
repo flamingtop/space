@@ -1,7 +1,7 @@
 $(function(){
 
   window.Block = Backbone.Model.extend({
-    urlRoot: 'http://localhost:9393/block'
+    urlRoot: 'http://localhost:9393/page/' + page.id + '/block'
   });
   window.Page  = Backbone.Model.extend({
     urlRoot: 'http://localhost:9393/page'
@@ -9,7 +9,7 @@ $(function(){
 
   window.BlockList = Backbone.Collection.extend({
     model: Block,
-    url: 'http://localhost:9393/page/' + page.id + '/blocks'
+    url: 'http://localhost:9393/page/' + page.id + '/blocks' // TODO implement in lollypop.erb
     // localStorage: new Store('page')
   }, {
     selected: function() {
@@ -74,7 +74,7 @@ $(function(){
       
       this.model
         .bind('destroy', function() {
-          this.$el.fadeOut(function(){
+          this.$el.fadeOut(function(el){
             $(this).remove();
           });
         }, this)
@@ -258,6 +258,12 @@ $(function(){
     }
 
   });
+
+  window.App = (new AppView({
+    collection: new BlockList(blocks),
+    model: new Page(page)
+  })).render();
+
 
 });
 

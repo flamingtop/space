@@ -5,6 +5,10 @@
     <title></title>
     <link rel="stylesheet" type="text/css" href="/jquery-ui/css/smoothness/jquery-ui-1.8.21.custom.css" />
     <link rel="stylesheet" type="text/css" href="/app.css" />
+    <script id="bootstrap">
+      var page =<%= page %>;
+      var blocks = <%= blocks %>;
+    </script>
   </head>
   
   <body>
@@ -58,16 +62,7 @@
     <script src="/jquery.hotkeys.js"></script>
     <script src="/app.js"></script>
 
-    <script id="bootstrap">
-    $(function(){
-      var page =<%= page %>;
-      var blocks = <%= blocks %>;
-      window.App = (new AppView({
-        collection: new BlockList(blocks),
-        model: new Page(page)
-      })).render();
-    });
-    </script>
+
 
   </body>
 </html>
