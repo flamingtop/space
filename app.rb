@@ -13,6 +13,18 @@ before do
   headers "Content-Type" => "application/json"
 end
 
+get '/user' do
+=begin
+User
+email, password
+password or not?
+for different use cases
+  - anonymouse
+  - single user
+  - multi-user
+=end
+end
+
 get '/page/:id' do
   # user.can_edit
   page   = Page.load_by_id(params[:id])
@@ -22,8 +34,15 @@ get '/page/:id' do
 end
 
 post '/page/:pid/block' do
+  # TODO
   page  = Page.load_by_id(params[:pid])
-  block = page.add_block JSON.parse(request.body.read)
+  block = page.add_block JSON.parse(request.body.read)  
+  block.to_s
+end
+
+put '/page/:pid/block/:bid' do
+  block = Block.load_by_id(params[:bid])
+  block.update(JSON.parse request.body.read)
   block.to_s
 end
 

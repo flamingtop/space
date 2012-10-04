@@ -1,10 +1,10 @@
 $(function(){
 
   window.Block = Backbone.Model.extend({
-    urlRoot: 'http://localhost:9393/page/' + page.id + '/block'
+    urlRoot: '/page/' + page.id + '/block'
   });
   window.Page  = Backbone.Model.extend({
-    urlRoot: 'http://localhost:9393/page'
+    urlRoot: '/page'
   });
 
   window.BlockList = Backbone.Collection.extend({
