@@ -1,6 +1,6 @@
 require 'neography'
 require 'json'
-
+require 'base32/crockford'
 
 class Node
 
@@ -19,8 +19,16 @@ class Node
   R_CAN_EDIT_PAGE_EDIT_BLOCK   = :CAN_EDIT_PAGE_EDIT_BLOCK
   R_CAN_EDIT_PAGE_DELETE_BLOCK = :CAN_EDIT_PAGE_DELETE_BLOCK
 
+  # indexes
+  IDX_ID   = :node_id
+  IDX_USER = :user
+  IDX_PAGE = :page
+
+  # common fields
+  F_ID = {:field => :id, :default => nil, :config => [:id]}
+
   @@db = Neography::Rest.new
-  
+
   attr_accessor :node
   
   def initialize(data)
@@ -43,14 +51,23 @@ class Node
     !@id
   end
 
+  def gen_id
+    Base32::Crockford.encode(rand(10**7) + Time.new.usec)
+  end
+
   def save
     if isNew?
-      @id = Time.new.usec
-      node = @@db.create_node(to_hash)
-      @node = node
+      @id =  gen_id
+      @node = create
+      @@db.add_node_to_index(IDX_ID, :id, @id, @node)
     else
       @@db.set_node_properties(@node, to_hash)
     end
+    self
+  end
+
+  def create
+    @@db.create_node(to_hash)
   end
 
   def self.load_by_id(id)
@@ -76,21 +93,32 @@ class Node
     end
     self
   end
+  
+  def update(data)
+    reset(data).save
+  end
+  
+  def delete
+    @@db.delete_node!(@node)
+  end
 
 end
 
 
 class Page < Node
-
   def schema
-    [{:field => :id     , :default => nil},
+    [{:field => :slug   , :default => nil},
      {:field => :type   , :default => NODE_TYPE_PAGE},
      {:field => :title  , :default => 'untitled'},
      {:field => :width  , :default => 'auto'},
      {:field => :height , :default => 'auto'},
-     {:field => :style  , :default => ''}]
+     {:field => :style  , :default => ''}] << F_ID
   end
-  
+
+  def create
+    @@db.create_unique_node(IDX_PAGE, :slug, @slug, to_hash)
+  end
+
   def load_blocks()
     blocks = []
     query = "start n=node:node_auto_index(id='#{@id}') match n-[#{R_HAS_BLOCK}]->m return m";
@@ -113,33 +141,21 @@ class Page < Node
   def delete_block(block)
     block.delete
   end
-  
 end
 
 
 
 class Block < Node
-  
   def schema
-    [{:field => :id     , :default => nil},
-     {:field => :type   , :default => NODE_TYPE_BLOCK},
+    [{:field => :type   , :default => NODE_TYPE_BLOCK},
      {:field => :top    , :default => 0},
      {:field => :left   , :default => 0},
      {:field => :width  , :default => 'auto'},
      {:field => :height , :default => 'auto'},
      {:field => :text   , :default => 'EMPTY'},
      {:field => :html   , :default => 'EMPTY'},            
-     {:field => :style  , :default => ''}]
+     {:field => :style  , :default => ''}] << F_ID
   end
-  
-  def update(data)
-    reset(data).save
-  end
-  
-  def delete
-    @@db.delete_node!(@node)
-  end
-  
 end
 
 
@@ -147,14 +163,25 @@ end
 class User < Node
 
   def schema
-    [{:field => 'type'         , :default => NODE_TYPE_USER},
-     {:field => 'email'        , :default => nil},
-     {:field => 'passowrd'     , :default => nil},
-     {:field => 'display_name' , :default => nil}]
+    [{:field => :type         , :default => NODE_TYPE_USER},
+     {:field => :email        , :default => nil},
+     {:field => :password     , :default => nil},
+     {:field => :display_name , :default => nil}] << F_ID
   end
 
   def add_to_group(group)
     @@db.create_relationship(R_IN_GROUP, @node, group.node)
+  end
+
+  def self.by_email(email)
+    node = @@db.get_node_index(IDX_USER, :email, email)
+    return nil if node.nil?
+    @node = node.first
+    User.new(node.first['data'])
+  end
+
+  def create
+    @@db.create_unique_node(IDX_USER, :email, @email, to_hash)    
   end
 
 end
@@ -164,8 +191,8 @@ end
 class Group < Node
   
   def schema
-    [{:field => 'type' , :default => NODE_TYPE_GROUP},
-     {:field => 'name' , :default => ''}]
+    [{:field => :type , :default => NODE_TYPE_GROUP},
+     {:field => :name , :default => ''}]
   end
 
   def set_perm(rel, anynode)

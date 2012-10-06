@@ -13,16 +13,26 @@ before do
   headers "Content-Type" => "application/json"
 end
 
-get '/user' do
-=begin
-User
-email, password
-password or not?
-for different use cases
-  - anonymouse
-  - single user
-  - multi-user
-=end
+  
+get '/user/signup' do
+  headers "Content-Type" => "text/html"
+  erb :signup
+end
+
+post '/user/signup' do
+  user = User.by_email(params['signup']['email'])
+  return 'already exists' if user
+  user = User.new(params['signup'])
+  user.save
+  'registered'
+end
+
+get '/user/signin' do
+  
+end
+
+get '/user/signout' do
+ 
 end
 
 get '/page/:id' do
