@@ -2,6 +2,58 @@ require 'neography'
 require 'json'
 require 'base32/crockford'
 
+class Text
+  attr_accessor :text, :type, :html, :style, :clean
+  def initialize(s)
+    @text = s
+    extract_type
+    extract_style
+    sanitize
+    to_html
+  end
+
+  def extract_type
+    @type = @text.split("\n").first.chomp.downcase[1..-1] 
+  end
+  
+  def extract_style
+    require 'nokogiri'
+    @style = ''
+    Nokogiri::HTML(@text).css('style').each do |css|
+      @style += css
+    end
+  end
+
+  def sanitize
+    @clean = @text.gsub(/<style>.*<\/style>/m, '')
+  end
+  
+  def to_html
+    rest_lines = @clean.split(/[\r\n]/)[1..-1].join("\n")
+    
+    case @type
+    when 'bbcode'
+      require 'bb-ruby'
+      @html = rest_lines.bbcode_to_html
+    when 'markdown', 'md'
+      require 'maruku'
+      @html = Maruku.new(rest_lines).to_html
+    when 'mediawiki', 'mwiki'
+      require 'wikicloth'
+      @html = WikiCloth::Parser.new({:data => rest_lines}).to_html
+    when 'orgmode', 'org'
+      require 'org-ruby'
+      @html = Orgmode::Parser.new(rest_lines).to_html
+    when 'textile', 'tt'
+      require 'RedCloth'
+      @html = RedCloth.new(rest_lines).to_html
+      # when 'restructuredtext'
+    else
+      @html = '<pre>' + @text + '</pre>'
+    end
+  end
+end
+
 class Node
 
   # node types
@@ -47,7 +99,7 @@ class Node
     JSON.generate to_hash
   end
   
-  def isNew?
+  def is_new?
     !@id
   end
 
@@ -55,8 +107,12 @@ class Node
     Base32::Crockford.encode(rand(10**7) + Time.new.usec)
   end
 
+  def before_save
+  end
+
   def save
-    if isNew?
+    before_save
+    if is_new?
       @id =  gen_id
       @node = create
       @@db.add_node_to_index(IDX_ID, :id, @id, @node)
@@ -70,25 +126,25 @@ class Node
     @@db.create_node(to_hash)
   end
 
-  def self.load_by_id(id)
-    r = @@db.get_node_auto_index(:id, id)
-    n = self.new(r.first['data'])
-    n.node = r.first
-    n
+  def self.by_id(id)
+    node = @@db.get_node_index(IDX_ID, :id, id)
+    return nil if node.nil?
+    self.new(node)
   end
-
-  protected
-  
 
   # populate node variables from a hash or json object
   def reset(data)
+    if data.first.is_a? Hash and data.first['data']
+      @node = data
+      data = data.first['data']
+    end
     if !data.is_a?(Hash)
       data = JSON.parse data
     end
     data = Hash[data.map {|k,v| k.respond_to?(:to_sym) ? [k.to_sym, v] : [k, v]}]
     schema.each do |f|
       self.class.send(:attr_accessor, f[:field])
-      value = data[f[:field]] || (isNew? ? f[:default] : instance_variable_get('@'+f[:field].to_s))
+      value = data[f[:field]] || (is_new? ? f[:default] : instance_variable_get('@'+f[:field].to_s))
       instance_variable_set( '@'+f[:field].to_s, value)
     end
     self
@@ -115,13 +171,19 @@ class Page < Node
      {:field => :style  , :default => ''}] << F_ID
   end
 
+  def self.by_slug(slug)
+    page = @@db.get_node_index(IDX_PAGE, :slug, slug)
+    return nil if page.nil?
+    Page.new(page)
+  end
+
   def create
     @@db.create_unique_node(IDX_PAGE, :slug, @slug, to_hash)
   end
 
   def load_blocks()
     blocks = []
-    query = "start n=node:node_auto_index(id='#{@id}') match n-[#{R_HAS_BLOCK}]->m return m";
+    query = "start n=node:#{IDX_ID}(id='#{@id}') match n-[#{R_HAS_BLOCK}]->m return m";
     @@db.execute_query(query)['data'].each do |item|
       blocks.push Block.new(item.first['data'])
     end
@@ -129,7 +191,7 @@ class Page < Node
   end
   
   def add_block(block)
-    save if isNew?
+    save if is_new?
     if !block.is_a? Block
       block = Block.new(block)
       block.save
@@ -156,12 +218,16 @@ class Block < Node
      {:field => :html   , :default => 'EMPTY'},            
      {:field => :style  , :default => ''}] << F_ID
   end
+
+  def before_save
+    t = Text.new((@text))
+    @style = t.style
+    @html = t.html
+  end
 end
 
 
-
 class User < Node
-
   def schema
     [{:field => :type         , :default => NODE_TYPE_USER},
      {:field => :email        , :default => nil},
@@ -176,20 +242,27 @@ class User < Node
   def self.by_email(email)
     node = @@db.get_node_index(IDX_USER, :email, email)
     return nil if node.nil?
-    @node = node.first
-    User.new(node.first['data'])
+    User.new(node)
   end
 
+  def self.by_email_passwd(email, password)
+    user = by_email(email)
+    return nil if user.nil? or user.password != password
+    user
+  end
+  
   def create
     @@db.create_unique_node(IDX_USER, :email, @email, to_hash)    
   end
 
+  def can_edit_page?(page)
+    true
+  end
 end
 
 
 
 class Group < Node
-  
   def schema
     [{:field => :type , :default => NODE_TYPE_GROUP},
      {:field => :name , :default => ''}]
@@ -214,5 +287,4 @@ class Group < Node
   def can_edit_page?(page)
     
   end
-
 end

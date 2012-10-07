@@ -13,7 +13,16 @@ before do
   headers "Content-Type" => "application/json"
 end
 
-  
+get '/test' do
+  bbcode    = ":bbcode\n[b]bold text[/b]"
+  markdown  = ":markdown\n**bold text**"
+  mediawiki = ":mediawiki\n'''bold text'''"
+  orgmode   = ":orgmode\n*bold text*"
+  textile   = ":textile\n*bold text*"
+  raw       = "*bold text*<style>\nh1 {color:red}</style><style>h2 {color:blue}</style>"
+  Text.new(raw).text
+end
+
 get '/user/signup' do
   headers "Content-Type" => "text/html"
   erb :signup
@@ -22,42 +31,54 @@ end
 post '/user/signup' do
   user = User.by_email(params['signup']['email'])
   return 'already exists' if user
-  user = User.new(params['signup'])
-  user.save
+  User.new(params['signup']).save
   'registered'
 end
 
 get '/user/signin' do
-  
+  # return 'logged in already' if session[:uid]
+  headers "Content-Type" => "text/html"  
+  erb :signin
+end
+
+post '/user/signin' do
+  user = User.by_email_passwd(params['signin']['email'], params['signin']['password'])
+  return 'wrong email or password'  if user.nil? 
+  session[:uid] = user.id
 end
 
 get '/user/signout' do
- 
 end
 
-get '/page/:id' do
-  # user.can_edit
-  page   = Page.load_by_id(params[:id])
-  blocks = page.load_blocks
-  headers "Content-Type" => "text/html"
-  erb :page, :locals => {:page => page.to_s, :blocks => blocks.to_s}
+get '/page/:slug' do
+  page   = Page.by_slug(params[:slug])
+  if page.nil? and session[:uid]
+    page = Page.new({:slug => params[:slug]}).save
+  end
+  user = User.by_id(session[:uid])
+  if user.can_edit_page?(page)
+    blocks = page.load_blocks
+    headers "Content-Type" => "text/html"
+    erb :page, :locals => {:page => page.to_s, :blocks => blocks.to_s}
+  else
+    'cant edit'
+  end
 end
 
 post '/page/:pid/block' do
-  # TODO
-  page  = Page.load_by_id(params[:pid])
-  block = page.add_block JSON.parse(request.body.read)  
+  page  = Page.by_id(params[:pid])
+  block = page.add_block(JSON.parse(request.body.read))
   block.to_s
 end
 
 put '/page/:pid/block/:bid' do
-  block = Block.load_by_id(params[:bid])
+  block = Block.by_id(params[:bid])
   block.update(JSON.parse request.body.read)
   block.to_s
 end
 
 delete '/page/:pid/block/:bid' do
-  block = Block.load_by_id(params[:bid])
+  block = Block.by_id(params[:bid])
   block.delete
   'OK'
 end
