@@ -132,7 +132,7 @@ class Node
     rescue => ex
       nil
     else
-      self.new(node)
+      node.nil? ? nil : self.new(node)
     end
   end
 
@@ -181,7 +181,9 @@ class Page < Node
     rescue => ex
       nil
     else
-      Page.new(page)
+      # neography doesn't always throw Erros
+      # exception handling might not work
+      page.nil? ? nil : Page.new(page)
     end
   end
 
@@ -253,7 +255,7 @@ class User < Node
     rescue => ex
       nil
     else
-      User.new(node)
+      node.nil? ? nil : User.new(node)
     end
   end
 
