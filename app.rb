@@ -91,19 +91,18 @@ end
 
 get '/page/*' do
   slug = params[:splat].first.to_slug
-  page   = Page.by_slug(slug)
+  page  = Page.by_slug(slug)
   if page.nil?
     redirect '/user/signin' unless session[:uid]
     page = Page.new({:slug => slug}).save
+  end
+  user = User.by_id(session[:uid])
+  if user.can_edit_page? page
+    blocks = page.load_blocks
+    return_html
+    erb :page, :locals => {:page => page.to_s, :blocks => blocks.to_s}
   else
-    user = User.by_id(session[:uid])
-    if user.can_edit_page?(page)
-      blocks = page.load_blocks
-      return_html
-      erb :page, :locals => {:page => page.to_s, :blocks => blocks.to_s}
-    else
-      'cant edit'
-    end
+    'cant edit'
   end
 end
 
