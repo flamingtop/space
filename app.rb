@@ -89,20 +89,34 @@ delete '/page/:pid/block/:bid' do
   'OK'
 end
 
+get '/page/new' do
+  redirect '/page/' + params['title'] if params.key? 'title'
+  return_html
+  erb :page_new
+end
+
 get '/page/*' do
-  slug = params[:splat].first.to_slug
+  return_html
+  
+  title = params[:splat].first
+  slug = title.to_slug
   page  = Page.by_slug(slug)
-  if page.nil?
-    redirect '/user/signin' unless session[:uid]
-    page = Page.new({:slug => slug}).save
-  end
   user = User.by_id(session[:uid])
-  if user.can_edit_page? page
-    blocks = page.load_blocks
-    return_html
-    erb :page, :locals => {:page => page.to_s, :blocks => blocks.to_s}
+  
+  if page.nil?
+    if user.can_create_page?
+      page = Page.new({:slug => slug, :title => title}).save
+      erb :page, :locals => {:page => page.to_s, :blocks => [].to_s}
+    else
+      redirect '/user/signin'      
+    end
   else
-    'cant edit'
+    if user.can_edit_page? page
+      blocks = page.load_blocks
+      erb :page, :locals => {:page => page.to_s, :blocks => blocks.to_s}
+    else
+      "Sorry, you are not authorized to edit this page."
+    end
   end
 end
 

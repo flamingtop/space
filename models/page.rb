@@ -245,24 +245,32 @@ class User < Node
      {:field => :display_name , :default => nil}] << F_ID
   end
 
+  def self.by_id(id)
+    super(id) || AnonymousUser.new
+  end  
+
   def add_to_group(group)
     @@db.create_relationship(R_IN_GROUP, @node, group.node)
+  end
+
+  def anonymous?
+    @anonymous
   end
 
   def self.by_email(email)
     begin 
       node = @@db.get_node_index(IDX_USER, :email, email)
     rescue => ex
-      nil
+      AnonymousUser.new
     else
-      node.nil? ? nil : User.new(node)
+      node.nil? ? AnonymousUser.new : User.new(node)
     end
   end
 
   def self.by_email_passwd(email, password)
     user = by_email(email)
-    return nil if user.nil? or user.password != password
-    user
+    return false if user.anonymous?
+    user.password != password ? false : user
   end
   
   def create
@@ -272,9 +280,21 @@ class User < Node
   def can_edit_page?(page)
     true
   end
+
+  def can_create_page?
+    true
+  end
 end
 
-
+class AnonymousUser < User
+  def initialize
+    @anonymous = true
+    super({:display_name => 'Anonymous'})
+  end
+  def save
+    raise 'Anonymous user shouldn\'t be saved.'
+  end
+end
 
 class Group < Node
   def schema

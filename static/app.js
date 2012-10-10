@@ -9,12 +9,85 @@ $(function(){
 
   window.BlockList = Backbone.Collection.extend({
     model: Block,
-    url: 'http://localhost:9393/page/' + page.id + '/blocks' // TODO implement in lollypop.erb
+    url: '/page/' + page.id + '/blocks' // TODO implement in lollypop.erb
     // localStorage: new Store('page')
   }, {
     selected: function() {
       return _.filter(App.collection.models, function(model){
         return model.selected;
+      });
+    },
+    unselected: function() {
+      return _.filter(App.collection.models, function(model){
+        return !model.selected;
+      });
+    },
+    edges: function(models, direction) {
+      var edges = [];
+      edges.push(0);      
+      if('h' == direction)
+        edges.push($(document).scrollLeft());
+      else if('v' == direction)
+        edges.push($(document).scrollTop());
+      
+      _.each(models, function(model) {
+        if('h' == direction) {
+          edges.push(model.attributes.left);
+          edges.push(model.attributes.left + model.view.$el.width());
+        }
+        else if('v' == direction) {
+          edges.push(model.attributes.top);
+          edges.push(model.attributes.top + model.view.$el.height());
+        }
+      });
+      c.log('edges ', edges);
+      return _.uniq(edges);
+    },
+    closestEdge: function(models, side, n) {
+      if('left' == side || 'right' == side)
+        var edges = BlockList.edges(models, 'h');
+      else if('up' == side || 'down' == side)
+        var edges = BlockList.edges(models, 'v');
+
+      if('left' == side || 'up' == side)
+        return _.filter(edges, function(m) { return m < n; }).sort().reverse()[0];
+      else if('right' == side || 'down' == side)
+        return _.filter(edges, function(m) { return m > n; }).sort()[0];
+    },
+    moveSelected: function(direction) {
+      var selected = BlockList.selected();
+      if(!selected.length) return false;
+      _.each(selected, function(model) {
+        if('right' == direction || 'left' == direction) {
+          var side = 'left';
+          var n = model.attributes.left;
+        }
+        else if('up' == direction || 'down' == direction) {
+          var side = 'top';
+          var n = model.attributes.top
+        }
+        var closestEdge = BlockList.closestEdge(BlockList.unselected(), direction, n);
+        
+        if(closestEdge != undefined) {
+          var complete = function() {
+            model.set(side, closestEdge);
+            model.save();
+          };
+          
+          if('left' == direction || 'right' == direction) {
+            model.view.$el.animate({
+              left: closestEdge+'px'
+            }, {
+              'complete': complete
+            });
+          } else {
+            model.view.$el.animate({
+              top: closestEdge+'px'
+            }, {
+              'complete': complete
+            });
+          }
+        }
       });
     }
   });
@@ -45,13 +118,31 @@ $(function(){
             .resizable('option', 'aspectRatio', false);
           c.log('Block draggable: set helper: original');
         })
-        .bind('keyup', 'del', function() {
+        .bind('keyup', 'ctrl+d', function(e) {
+          // not binding to the 'del' command is because 
+          // mac has a different 'del' than pc keboards
+          e.preventDefault();
           var selected = BlockList.selected();
           if(!selected.length || !confirm('Delete'+selected.length+' items?')) return false;
           _.each(selected, function(model) {
             model.destroy();
           });
-          
+        })
+        .bind('keyup', 'alt+left', function(e){
+          e.preventDefault();
+          BlockList.moveSelected('left');
+        })
+        .bind('keyup', 'alt+right', function(e){
+          e.preventDefault();
+          BlockList.moveSelected('right');
+        })
+        .bind('keyup', 'alt+up', function(e){
+          e.preventDefault();          
+          BlockList.moveSelected('up');
+        })
+        .bind('keyup', 'alt+down', function(e){
+          e.preventDefault();          
+          BlockList.moveSelected('down');
         });
     },
     render: function() {
@@ -71,6 +162,7 @@ $(function(){
     initialize: function() {
 
       this.model.view = this; // bind current view to its model
+
       
       this.model
         .bind('destroy', function() {
@@ -93,6 +185,9 @@ $(function(){
           // }
           var that = this;
           this.model.selected = true;
+          that.$el.addClass('selected');
+          
+          /*
           $("html, body").animate(
             {
               scrollTop: (that.$el.position().top - 20) + "px",
@@ -106,11 +201,12 @@ $(function(){
               }
             }
           );
+          */
 
         }, this)
         .bind('deselect', function() {
           this.model.selected = false;
-          this.$el.css('background', '');
+          this.$el.removeClass('selected');
         }, this)
         .bind('delete', function() { // not the same to the 'remove' event
           confirm("Sure?") && this.model.destroy(); 
@@ -121,6 +217,7 @@ $(function(){
     },
 
     events: {
+      /*
       'mouseenter': function(e) {
         this.toolbox = new BlockToolboxView({model:this.model}).render().$el;
         this.$el.append(this.toolbox);
@@ -128,18 +225,21 @@ $(function(){
       'mouseleave': function(e) {
         this.toolbox.remove();
       },
-      'click': function(e) {
-        if(!e.altKey) {
-          return false;
-        }
-        if(this.model.selected)
-          this.model.trigger('deselect', e);
-        else
-          this.model.trigger('select', e);          
-      },
+      */
       'dblclick': function(e) {
         e.stopPropagation();
-        this.model.trigger('edit');
+        e.stopImmediatePropagation();
+      },
+      'click': function(e) {
+        e.stopPropagation();
+        if(e.altKey) {
+          this.model.trigger('edit');
+        } else {
+          if(this.model.selected)
+            this.model.trigger('deselect', e);
+          else
+            this.model.trigger('select', e);
+        }
       }
     },
 
@@ -154,8 +254,8 @@ $(function(){
         grid: [5,5],
         scroll: false,
         snap: true,
-        snapMode: 'both',
-        snapTollerance: 10,
+        //snapMode: 'both',
+        snapTollerance: 5,
         //stack: '.block',        
         //zIndex: 5000,
         stop: function(e, ui) {
@@ -167,22 +267,27 @@ $(function(){
           } else {
             that.model.save(ui.position);
           }
-        },
-        drag: function(e, ui) {
-          glv.css('left', ui.offset.left+'px').show('fast');
-          glh.css('top', ui.offset.top+'px').show('fast');
         }
+        // drag: function(e, ui) {
+        //   glv.css('left', ui.offset.left+'px').show('fast');
+        //   glh.css('top', ui.offset.top+'px').show('fast');
+        // }
       })
         .resizable({
           autoHide: true,
-          minHeight: 100,
-          minWidth: 100,
-          grid: [5,5],
+          //minHeight: 100,
+          //minWidth: 100,
+          //grid: [5,5],
+          handles: 'all',
+          //helper: 'ui-resizable-helper',
+          //ghost: true,
           containment: 'parent',
           stop: function(e, ui) {
+            c.log($.extend(ui.size, ui.position));
             that.model.save(ui.size);
           }
         });
+      if(this.model.selected) this.$el.addClass('selected');
       return this;
     }
 
@@ -191,10 +296,10 @@ $(function(){
   window.BlockToolboxView = Backbone.View.extend({
     events: {
       'click .edit': function(e) {
-	this.model.trigger('edit');
+        this.model.trigger('edit');
       },
       'click .remove': function(e) {
-	this.model.trigger('delete');
+        this.model.trigger('delete');
       } 
     },
     initialize: function() {
@@ -210,8 +315,10 @@ $(function(){
     initialize: function() {
       var that = this;
       var save_model = function(model) {
+        var text = $.trim(that.$el.find('textarea').val());
+        if(!text.length) text = '!empty';
         if(model.isNew()) App.collection.add(model);
-	model.save({'text':that.$el.find('textarea').val()});
+        model.save({'text':text});
       };
       that.setElement($(Mustache.render($('#template-editbox').html(), that.model.toJSON())));
 
@@ -230,7 +337,7 @@ $(function(){
         })
         .bind('keydown', _.debounce(function(){
           save_model(that.model);
-	}, 1000));
+        }, 1000));
     },
 
     events: {
@@ -244,10 +351,10 @@ $(function(){
       this.$el
         .appendTo($('body'))
         .draggable()
-        .animate({
-          top: '+=15',
-          left: '+=15'
-        })
+        // .animate({
+        //   top: '+=15',
+        //   left: '+=15'
+        // })
         .find('textarea')
         .focus();
     },

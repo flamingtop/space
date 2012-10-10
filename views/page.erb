@@ -31,9 +31,9 @@
     <!--templates-->
     <script type="text/template" id="template-editbox">
       <div class="editview" style="position:absolute;top:{{top}}px;left:{{left}}px">
-        <button class="close" style="float:right;">x</button>
+        <!--<button class="close" style="float:right;">x</button>-->
         <div class="clear"></div>
-        <textarea rows="10" cols="50">{{text}}</textarea>
+        <textarea rows="28" cols="80">{{text}}</textarea>
       </div>
     </script>
     <script type="text/template" id="template-blockview">
@@ -41,6 +41,7 @@
         <div class="content">{{&html}}</div>
       </div>
     </script>
+    <!--
     <script type="text/template" id="template-blockview-toolbox">
       <ul class="block-toolbox">
         <li class="edit">Edit</li>
@@ -50,8 +51,7 @@
         <li class="style">Style</li>
       </ul>
     </script>
-
-
+    -->
     <!-- load this first, ref: backbone.js line 42 -->
     <script src="/jquery-1.7.2.min.js"></script>
     <script src="/jquery-ui/js/jquery-ui-1.8.21.custom.min.js"></script>    
