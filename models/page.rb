@@ -1,55 +1,63 @@
 require 'neography'
 require 'json'
 require 'base32/crockford'
+require 'nokogiri'
 
 class Text
-  attr_accessor :text, :type, :html, :style, :clean
-  def initialize(s)
-    @text = s
-    extract_type
-    extract_style
-    sanitize
-    to_html
-  end
-
-  def extract_type
-    @type = @text.split("\n").first.chomp.downcase[1..-1] 
-  end
-  
-  def extract_style
-    require 'nokogiri'
+  attr_accessor :raw, :html, :clean 
+  attr_accessor :type, :style, :title, :tags
+  def initialize(text)
+    @raw = text
+    @html = ''
+    @clean = ''
+    @title = ''
+    @type = ''
     @style = ''
-    Nokogiri::HTML(@text).css('style').each do |css|
-      @style += css
-    end
+    @tags = []
+    extract
   end
 
-  def sanitize
-    @clean = @text.gsub(/<style>.*<\/style>/m, '')
+  def extract
+    doc = Nokogiri::HTML.fragment(@raw)
+    doc.css('title').each do |ele|
+      @title = ele.children.first.to_s.chomp
+      ele.remove()
+    end
+    doc.css('style').each do |ele|
+      @style += ele
+      ele.remove()
+    end
+    doc.css('type').each do |ele|
+      @type = ele.children.first.to_s.chomp.downcase
+      ele.remove()
+    end
+    doc.css('tags').each do |ele|
+      @tags = ele.children.first.to_s.chomp.split(',')
+      ele.remove()
+    end
+    puts doc.to_html
+    @clean = doc.to_html
   end
-  
+
   def to_html
-    rest_lines = @clean.split(/[\r\n]/)[1..-1].join("\n")
-    
     case @type
     when 'bbcode'
       require 'bb-ruby'
-      @html = rest_lines.bbcode_to_html
+      @html = @clean.bbcode_to_html
     when 'markdown', 'md'
       require 'maruku'
-      @html = Maruku.new(rest_lines).to_html
+      @html = Maruku.new(@clean).to_html
     when 'mediawiki', 'mwiki'
       require 'wikicloth'
-      @html = WikiCloth::Parser.new({:data => rest_lines}).to_html
+      @html = WikiCloth::Parser.new({:data => @clean}).to_html
     when 'orgmode', 'org'
       require 'org-ruby'
-      @html = Orgmode::Parser.new(rest_lines).to_html
+      @html = Orgmode::Parser.new(@clean).to_html
     when 'textile', 'tt'
       require 'RedCloth'
-      @html = RedCloth.new(rest_lines).to_html
-      # when 'restructuredtext'
+      @html = RedCloth.new(@clean).to_html
     else
-      @html = '<pre>' + @text + '</pre>'
+      @html = '<pre>' + @clean + '</pre>'
     end
   end
 end
@@ -220,19 +228,21 @@ end
 class Block < Node
   def schema
     [{:field => :type   , :default => NODE_TYPE_BLOCK},
+     {:field => :title   , :default => 'UNTITLED'},                 
      {:field => :top    , :default => 0},
      {:field => :left   , :default => 0},
      {:field => :width  , :default => 'auto'},
      {:field => :height , :default => 'auto'},
-     {:field => :text   , :default => 'EMPTY'},
-     {:field => :html   , :default => 'EMPTY'},            
+     {:field => :raw    , :default => 'EMPTY'},
+     {:field => :html   , :default => 'EMPTY'},
+     {:field => :tags   , :default => ''},                 
      {:field => :style  , :default => ''}] << F_ID
   end
 
   def before_save
-    t = Text.new((@text))
+    t = Text.new(@raw)
     @style = t.style
-    @html = t.html
+    @html = t.to_html
   end
 end
 

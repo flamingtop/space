@@ -30,10 +30,10 @@
 
     <!--templates-->
     <script type="text/template" id="template-editbox">
-      <div class="editview" style="position:absolute;top:{{top}}px;left:{{left}}px">
-        <!--<button class="close" style="float:right;">x</button>-->
+      <div class="editview" style="position:absolute;top:{{top}}px;left:{{left}}px;width:600px;">
+        <button class="close" style="position:absolute;top:0;right:0;">x</button>
         <div class="clear"></div>
-        <textarea rows="28" cols="80">{{text}}</textarea>
+        <textarea class="content" style="width:100%;" rows="18">{{text}}</textarea>
       </div>
     </script>
     <script type="text/template" id="template-blockview">
@@ -57,7 +57,7 @@
     <script src="/jquery-ui/js/jquery-ui-1.8.21.custom.min.js"></script>    
     <script src="/underscore/underscore.js"></script>
     <script src="/backbone/backbone.js"></script>
-    <script src="/Backbone.localStorage/backbone.localStorage.js"></script>
+<!--    <script src="/Backbone.localStorage/backbone.localStorage.js"></script> -->
     <script src="/mustache.js/mustache.js"></script>		
     <script src="/c.js"></script>
     <script src="/jquery.hotkeys.js"></script>

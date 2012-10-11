@@ -3,6 +3,7 @@ $(function(){
   window.Block = Backbone.Model.extend({
     urlRoot: '/page/' + page.id + '/block'
   });
+  
   window.Page  = Backbone.Model.extend({
     urlRoot: '/page'
   });
@@ -101,7 +102,7 @@ $(function(){
       this.collection.bind('add', this._add, this);
       
       this.$el.bind('dblclick', function(e) {
-        new EditView({model:new Block({top:e.pageY, left:e.pageX, text:''})}).render();
+        new EditView({model:new Block({top:e.pageY, left:e.pageX, raw:''})}).render();
       });
 
       var that = this;
@@ -116,7 +117,6 @@ $(function(){
           that.$el.find('.block')
             .draggable('option', 'helper', 'original')
             .resizable('option', 'aspectRatio', false);
-          c.log('Block draggable: set helper: original');
         })
         .bind('keyup', 'ctrl+d', function(e) {
           // not binding to the 'del' command is because 
@@ -318,16 +318,17 @@ $(function(){
         var text = $.trim(that.$el.find('textarea').val());
         if(!text.length) text = '!empty';
         if(model.isNew()) App.collection.add(model);
-        model.save({'text':text});
+        model.save({'raw':text});
       };
       that.setElement($(Mustache.render($('#template-editbox').html(), that.model.toJSON())));
 
       that.bind('cancel', function() {
         that.close();
-        return false;
       })
       .$el.find('textarea')
-        .bind('keydown', 'esc', function() {
+        .bind('keydown', 'esc', function(e) {
+          e.preventDefault();
+          e.stopPropagation();
           that.trigger('cancel');
         })
         .bind('keydown', 'ctrl+s', function(e) {
@@ -335,8 +336,8 @@ $(function(){
           save_model(that.model);
           return false;
         })
-        .bind('keydown', _.debounce(function(){
-          save_model(that.model);
+        .bind('keydown', _.debounce(function(e){
+          if(e.keyCode != 27) save_model(that.model);
         }, 1000));
     },
 
@@ -351,6 +352,9 @@ $(function(){
       this.$el
         .appendTo($('body'))
         .draggable()
+        .resizable({
+          handles: 'all'
+        })
         // .animate({
         //   top: '+=15',
         //   left: '+=15'
