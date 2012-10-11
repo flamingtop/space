@@ -10,7 +10,7 @@ $(function(){
 
   window.BlockList = Backbone.Collection.extend({
     model: Block,
-    url: '/page/' + page.id + '/blocks' // TODO implement in lollypop.erb
+    url: '/page/' + page.id + '/blocks'
     // localStorage: new Store('page')
   }, {
     selected: function() {
@@ -117,6 +117,7 @@ $(function(){
           that.$el.find('.block')
             .draggable('option', 'helper', 'original')
             .resizable('option', 'aspectRatio', false);
+          c.log('Block draggable helper: original');
         })
         .bind('keyup', 'ctrl+d', function(e) {
           // not binding to the 'del' command is because 
@@ -227,14 +228,14 @@ $(function(){
       },
       */
       'dblclick': function(e) {
+        e.preventDefault();
         e.stopPropagation();
         e.stopImmediatePropagation();
+        this.model.trigger('edit');        
       },
       'click': function(e) {
         e.stopPropagation();
         if(e.altKey) {
-          this.model.trigger('edit');
-        } else {
           if(this.model.selected)
             this.model.trigger('deselect', e);
           else

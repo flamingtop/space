@@ -20,7 +20,7 @@ class Text
   def extract
     doc = Nokogiri::HTML.fragment(@raw)
     doc.css('title').each do |ele|
-      @title = ele.children.first.to_s.chomp
+      @title = ele.text.strip
       ele.remove()
     end
     doc.css('style').each do |ele|
@@ -28,14 +28,13 @@ class Text
       ele.remove()
     end
     doc.css('type').each do |ele|
-      @type = ele.children.first.to_s.chomp.downcase
+      @type = ele.text.strip.downcase
       ele.remove()
     end
     doc.css('tags').each do |ele|
-      @tags = ele.children.first.to_s.chomp.split(',')
+      @tags = ele.text.split(',').map! {|tag| tag.strip}
       ele.remove()
     end
-    puts doc.to_html
     @clean = doc.to_html
   end
 
@@ -228,7 +227,7 @@ end
 class Block < Node
   def schema
     [{:field => :type   , :default => NODE_TYPE_BLOCK},
-     {:field => :title   , :default => 'UNTITLED'},                 
+     {:field => :title  , :default => ''},                 
      {:field => :top    , :default => 0},
      {:field => :left   , :default => 0},
      {:field => :width  , :default => 'auto'},
@@ -242,7 +241,9 @@ class Block < Node
   def before_save
     t = Text.new(@raw)
     @style = t.style
-    @html = t.to_html
+    @title = t.title
+    @tags  = JSON.generate t.tags
+    @html  = t.to_html
   end
 end
 
