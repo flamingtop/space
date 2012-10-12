@@ -6,10 +6,6 @@
     <title></title>
     <link rel="stylesheet" type="text/css" href="/jquery-ui/css/smoothness/jquery-ui-1.8.21.custom.css" />
     <link rel="stylesheet" type="text/css" href="/app.css" />
-    <script id="bootstrap">
-      var page =<%= page %>;
-      var blocks = <%= blocks %>;
-    </script>
   </head>
   
   <body>
@@ -58,18 +54,36 @@
       </ul>
     </script>
     -->
-    <!-- load this first, ref: backbone.js line 42 -->
+    
+    <script>
+      PAGE = <%= page %>;
+      BLOCKS = <%= blocks %>;
+    </script>
+    <script src="/config.js"></script>
     <script src="/jquery-1.7.2.min.js"></script>
     <script src="/jquery-ui/js/jquery-ui-1.8.21.custom.min.js"></script>    
     <script src="/underscore/underscore.js"></script>
     <script src="/backbone/backbone.js"></script>
-<!--    <script src="/Backbone.localStorage/backbone.localStorage.js"></script> -->
+    <script src="/Backbone.localStorage/backbone.localStorage.js"></script>
     <script src="/mustache.js/mustache.js"></script>		
     <script src="/c.js"></script>
     <script src="/jquery.hotkeys.js"></script>
+    <script src="/models/block.js"></script>
+    <script src="/models/page.js"></script>
+    <script src="/models/blocklist.js"></script>
+    <script src="/views/page-view.js"></script>
+    <script src="/views/page-edit-view.js"></script>
+    <script src="/views/block-view.js"></script>    
+    <script src="/views/block-edit-view.js"></script>
+    <script src="/views/block-toolbox-view.js"></script>
     <script src="/app.js"></script>
-
-
-
+    <script>
+      $(function(){
+        window.App = (new PageView({
+          collection: new BlockList(BLOCKS),
+          model: new Page(PAGE)
+        })).render();
+      });
+    </script>
   </body>
 </html>

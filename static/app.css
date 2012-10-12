@@ -57,7 +57,7 @@ html * {
     background-color:#fff;
 }
 .editview textarea {
-    font-size: 15px;
+/*    font-size: 15px; */
     outline: 0;
     border: 0;
     background-color:#fff;
