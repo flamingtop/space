@@ -95,6 +95,12 @@ get '/page/new' do
   erb :page_new
 end
 
+put '/page/:pid' do
+  page = Page.by_id(params[:pid])
+  page.update(JSON request.body.read)
+  page.to_s
+end
+
 get '/page/*' do
   return_html
   

@@ -10,8 +10,7 @@ $(function(){
 
   window.BlockList = Backbone.Collection.extend({
     model: Block,
-    url: '/page/' + page.id + '/blocks'
-    // localStorage: new Store('page')
+    url: '/page/' + page.id + '/blocks' // localStorage: new Store('page')
   }, {
     selected: function() {
       return _.filter(App.collection.models, function(model){
@@ -93,11 +92,59 @@ $(function(){
     }
   });
 
-  window.AppView = Backbone.View.extend({
+  window.PageEditView = Backbone.View.extend({
+    el: $('#page-edit-box'),
+    show: function() {
+      this.$el.animate({
+        top: '-10px'
+      }, {
+        duration: 500
+      });
+    },
+    hide: function() {
+      this.$el.animate({
+        top: '-1000px'
+      }, {
+        duration: 500
+      });
+    }
+  });
+  
+  window.PageView = Backbone.View.extend({
     
     el: $('#page'),
     
     initialize: function() {
+
+      // page edit box
+      var that = this;
+      this.edit_box = new PageEditView({model:this.model});
+      this.model.on('page:edit:start', function(){
+        this.edit_box.on = true;
+        this.edit_box.show();
+        this.edit_box.$el.find('textarea').focus().val(this.model.get('raw'));
+      }, this);
+      this.model.on('page:edit:end', function(){
+        this.edit_box.on = false;
+        this.edit_box.hide();
+        this.edit_box.$el.find('textarea').blur();
+        var raw = $.trim(this.edit_box.$el.find('textarea').val());
+        if(this.model.get('raw') != raw)
+          this.model.save({raw:raw});
+      }, this);
+      $(document).bind('keypress', '`', function(e) {
+        e.preventDefault();
+        if(that.edit_box.on === true)
+          that.model.trigger('page:edit:end');
+        else
+          that.model.trigger('page:edit:start');
+      });
+      this.edit_box.$el.find('textarea').bind('keydown', 'esc', function(){
+        that.model.trigger('page:edit:end');
+      });
+
+
+      
 
       this.collection.bind('add', this._add, this);
       
@@ -356,10 +403,12 @@ $(function(){
         .resizable({
           handles: 'all'
         })
-        // .animate({
-        //   top: '+=15',
-        //   left: '+=15'
-        // })
+        .animate({
+          top: '-=10',
+          //left: '-=10'
+        }, {
+          duration: 1000
+        })
         .find('textarea')
         .focus();
     },
@@ -370,7 +419,7 @@ $(function(){
 
   });
 
-  window.App = (new AppView({
+  window.App = (new PageView({
     collection: new BlockList(blocks),
     model: new Page(page)
   })).render();

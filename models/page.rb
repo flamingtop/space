@@ -5,7 +5,7 @@ require 'nokogiri'
 
 class Text
   attr_accessor :raw, :html, :clean 
-  attr_accessor :type, :style, :title, :tags
+  attr_accessor :type, :style, :title, :tags, :slug
   def initialize(text)
     @raw = text
     @html = ''
@@ -13,6 +13,7 @@ class Text
     @title = ''
     @type = ''
     @style = ''
+    @slug = ''
     @tags = []
     extract
   end
@@ -21,6 +22,11 @@ class Text
     doc = Nokogiri::HTML.fragment(@raw)
     doc.css('title').each do |ele|
       @title = ele.text.strip
+      @slug = @title.to_slug
+      ele.remove()
+    end
+    doc.css('slug').each do |ele|
+      @slug = ele.text.strip.to_slug
       ele.remove()
     end
     doc.css('style').each do |ele|
@@ -179,6 +185,9 @@ class Page < Node
      {:field => :title  , :default => 'untitled'},
      {:field => :width  , :default => 'auto'},
      {:field => :height , :default => 'auto'},
+     {:field => :tags   , :default => [].to_s},
+     {:field => :raw    , :default => ''},
+     {:field => :html    , :default => ''},     
      {:field => :style  , :default => ''}] << F_ID
   end
 
@@ -198,6 +207,15 @@ class Page < Node
     @@db.create_unique_node(IDX_PAGE, :slug, @slug, to_hash)
   end
 
+  def before_save
+    t = Text.new(@raw)
+    @style = t.style
+    @title = t.title
+    @slug = t.slug
+    @tags  = JSON.generate t.tags
+    @html  = t.to_html
+  end
+  
   def load_blocks()
     blocks = []
     query = "start n=node:#{IDX_ID}(id='#{@id}') match n-[#{R_HAS_BLOCK}]->m return m";
