@@ -73,10 +73,9 @@
     <script src="/app.js"></script>
     <script>
       $(function(){
-        var page = new Page(PAGE);
-        var blocks = new BlockList().reset(BLOCKS);;
-        // var blocks = new BlockList().fetch();
-        page.view.collection = blocks;
+        window.page = new Page(PAGE);
+        window.blocks = new BlockList().reset(BLOCKS);;
+        /* window.blocks = new BlockList().fetch(); */
       });
     </script>
   </body>

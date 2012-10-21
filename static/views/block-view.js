@@ -46,7 +46,7 @@ window.BlockView = Backbone.View.extend({
         glv.fadeOut(); glh.fadeOut();
         if(e.shiftKey) {
           var new_model = that.model.clone().unset('id').set(ui.position, {silent:true});
-          App.collection.add(new_model);
+          blocks.add(new_model);
           new_model.save();
         } else {
           that.model.save(ui.position);

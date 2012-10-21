@@ -16,7 +16,8 @@ window.Block = Backbone.Model.extend({
       .bind('block:edit:save', function() {
         var text = $.trim(this.editor.$el.find('textarea').val());
         if(!text.length) text = 'It\'s empty.';
-        if(this.isNew()) App.collection.add(this);
+        c.log(this);
+        if(this.isNew()) window.blocks.add(this);
         this.save({'raw':text});
       }, this)
       .bind('block:edit:end', function() {

@@ -35,7 +35,7 @@ window.PageView = Backbone.View.extend({
           }
           that.model.save(changes, {
             success: function(model, resp, callback) {
-              _.each(that.collection.models, function(model){
+              _.each(blocks.models, function(model){
                 model.save({ top: model.get('top') + delta_top,
                              left: model.get('left') + delta_left });
               });
