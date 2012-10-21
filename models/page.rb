@@ -183,7 +183,7 @@ class Page < Node
     [{:field => :slug   , :default => nil},
      {:field => :type   , :default => NODE_TYPE_PAGE},
      {:field => :title  , :default => 'untitled'},
-     {:field => :width  , :default => 'auto'},
+     {:field => :width  , :default => '100%'},
      {:field => :height , :default => 'auto'},
      {:field => :tags   , :default => [].to_s},
      {:field => :raw    , :default => ''},

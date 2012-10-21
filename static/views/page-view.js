@@ -3,52 +3,58 @@ window.PageView = Backbone.View.extend({
   el: $('#page'),
   
   initialize: function() {
-
-    // page edit box
+    
     var that = this;
-    this.edit_box = new PageEditView({model:this.model});
-    this.model.on('page:edit:start', function(){
-      this.edit_box.on = true;
-      this.edit_box.show();
-      this.edit_box.$el.find('textarea').focus().val(this.model.get('raw'));
-    }, this);
-    this.model.on('page:edit:end', function(){
-      this.edit_box.on = false;
-      this.edit_box.hide();
-      this.edit_box.$el.find('textarea').blur();
-      var raw = $.trim(this.edit_box.$el.find('textarea').val());
-      if(this.model.get('raw') != raw)
-        this.model.save({raw:raw});
-    }, this);
-    $(document).bind('keypress', '`', function(e) {
-      e.preventDefault();
-      if(that.edit_box.on === true)
-        that.model.trigger('page:edit:end');
-      else
-        that.model.trigger('page:edit:start');
-    });
-    this.edit_box.$el.find('textarea').bind('keydown', 'esc', function(){
-      that.model.trigger('page:edit:end');
-    });
 
-
-    
-
-    this.collection.bind('add', this._add, this);
-    
-    this.$el.bind('dblclick', function(e) {
+    // 
+    that.$el.bind('dblclick', function(e) {
       (new Block({top:e.pageY, left:e.pageX, raw:''})).trigger('block:edit:start');
     });
+    
+    //
+    that.$el
+      .width(this.model.get('width'))
+      .height(this.model.get('height'))
+      .draggable({
+        cursor: "move",
+        axis: "y",
+        start: function(e, ui) {
+          that.$el.css('backgroundColor', '#eee');
+        },
+        stop: function(e, ui) {
+          var delta_left = ui.position.left - ui.originalPosition.left;
+          var delta_top = ui.position.top - ui.originalPosition.top;
+          var new_page_width = that.$el.width() + Math.abs(delta_left);
+          var new_page_height = that.$el.height() + Math.abs(delta_top);
 
-
+          var changes = {};
+          if(that.$el.draggable('option', 'axis') == 'y') {
+            changes = {height:new_page_height};
+          } else {
+            changes = {width:new_page_width}
+          }
+          that.model.save(changes, {
+            success: function(model, resp, callback) {
+              _.each(that.collection.models, function(model){
+                model.save({ top: model.get('top') + delta_top,
+                             left: model.get('left') + delta_left });
+              });
+            }
+          });
+        }
+      });
+    
+    //
     $(document)
       .bind('keydown', 'shift', function() {
+        that.$el.draggable('option', 'axis', 'x');
         that.$el.find('.block')
           .draggable('option', 'helper', 'clone')
           .resizable('option', 'aspectRatio', true);
         c.log('Block draggable helper: clone');
       })
       .bind('keyup', 'shift', function() {
+        that.$el.draggable('option', 'axis', 'y');
         that.$el.find('.block')
           .draggable('option', 'helper', 'original')
           .resizable('option', 'aspectRatio', false);
@@ -79,15 +85,14 @@ window.PageView = Backbone.View.extend({
       .bind('keyup', 'alt+down', function(e){
         e.preventDefault();          
         BlockList.moveSelected('down');
+      })
+      .bind('keypress', '`', function(e) {
+        e.preventDefault();
+        if(that.model.editor.on === true)
+          that.model.trigger('page:edit:end');
+        else
+          that.model.trigger('page:edit:start');
       });
-  },
-  render: function() {
-    _.each(this.collection.models, function(item, idx) {
-      this._add(item);
-    }, this);
-    return this;
-  },
-  _add: function(model) {
-    $('#page').append(model.view.render().el);
   }
+
 });

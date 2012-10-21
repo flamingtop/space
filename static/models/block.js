@@ -4,6 +4,7 @@ window.Block = Backbone.Model.extend({
   initialize: function(data) {
     this.init_editor_view();
     this.init_display_view();
+    this.init_model_events();
   },
 
   init_editor_view: function() {
@@ -25,6 +26,37 @@ window.Block = Backbone.Model.extend({
 
   init_display_view: function() {
     this.view = new BlockView({model: this});
+  },
+
+  init_model_events: function() {
+    this
+      .bind('destroy', function() {
+        this.view.$el.fadeOut(function(el){
+          $(this).remove();
+          c.log('block destroyed ', this);          
+        });
+      }, this)
+      .bind('sync', function() {
+        this.view.$el
+          .hide()
+          .replaceWith(this.view.render().$el)
+          .fadeIn();
+        c.log('block synced ', this);
+      }, this)
+      .bind('select', function(e) {
+        this.selected = true;
+        this.view.$el.addClass('selected');
+      }, this)
+      .bind('deselect', function() {
+        this.selected = false;
+        this.view.$el.removeClass('selected');
+      }, this)
+      .bind('delete', function() {
+        confirm("Sure?") && this.destroy(); 
+      }, this)
+      .bind('change', function() {
+        c.log('Changed attributes:', this.changedAttributes());
+      },this);
   }
   
 });

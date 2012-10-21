@@ -1,58 +1,5 @@
 window.BlockView = Backbone.View.extend({
 
-  initialize: function() {
-
-
-    
-    this.model
-      .bind('destroy', function() {
-        this.$el.fadeOut(function(el){
-          $(this).remove();
-        });
-      }, this)
-      .bind('sync', function() {
-        c.log('synced ', this.model.attributes);
-        this.$el.replaceWith(this.render().$el)
-      }, this)
-      .bind('select', function(e) {
-        // if(!e.ctrlKey) { // multiple selection
-        //   _.each(App.collection.models, function(model) {
-        //     model.trigger('deselect');
-        //   });
-        // }
-        var that = this;
-        this.model.selected = true;
-        that.$el.addClass('selected');
-        
-        /*
-          $("html, body").animate(
-          {
-          scrollTop: (that.$el.position().top - 20) + "px",
-          scrollLeft: (that.$el.position().left - 20) + "px"
-          },
-          {
-          duration: 150,
-          easing: "swing",
-          complete: function() {
-          that.$el.css('background', 'yellow');
-          }
-          }
-          );
-        */
-
-      }, this)
-      .bind('deselect', function() {
-        this.model.selected = false;
-        this.$el.removeClass('selected');
-      }, this)
-      .bind('delete', function() { // not the same to the 'remove' event
-        confirm("Sure?") && this.model.destroy(); 
-      }, this)
-      .bind('change', function() {
-        c.log('Changed attributes:', this.model.changedAttributes());
-      },this);
-  },
-
   events: {
     /*
       'mouseenter': function(e) {

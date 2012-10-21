@@ -25,6 +25,8 @@ window.EditView = Backbone.View.extend({
     // already rendered
     if(this.rendered === true) {
       this.$el
+        .css({ top:  this.model.get('top')+'px',
+               left: this.model.get('left')+'px' })
         .fadeIn()
         .animate({top:'-=10'},{
           complete: function() {

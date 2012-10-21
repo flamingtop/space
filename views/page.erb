@@ -9,23 +9,17 @@
   </head>
   
   <body>
+    <div id="page"></div>
 
     <div id="page-edit-box">
       <p></p>
       <textarea rows="30"></textarea>
     </div>
-    
-    <!-- app container -->
-    <div id="page"></div>
-    
-    <!-- drag guide lines -->
+
     <div id="guidelines" style="width:100px;">
       <div id="glv"></div>
       <div id="glh"></div>
     </div>
-
-
-
 
 
 
@@ -79,10 +73,9 @@
     <script src="/app.js"></script>
     <script>
       $(function(){
-        window.App = (new PageView({
-          collection: new BlockList(BLOCKS),
-          model: new Page(PAGE)
-        })).render();
+        var page = new Page(PAGE);
+        var blocks = new BlockList().reset(BLOCKS);;
+        page.view.collection = blocks;
       });
     </script>
   </body>

@@ -7,7 +7,24 @@ window.BlockList = Backbone.Collection.extend(function(){
   else
     return {
       model: Block,
-      url: '/page/' + PAGE.id + '/blocks'
+      url: '/page/' + PAGE.id + '/blocks',
+      initialize: function() {
+        this
+          .bind('reset', function(collection) {
+            this.add_all(collection.models);
+          }, this)
+          .bind('add', function(model) {
+            this.add_one(model);
+          }, this);
+      },
+      add_one: function(model) {
+        $('#page').append(model.view.render().$el);
+      }, 
+      add_all: function(models) {
+        _.each(models, function(model) {
+          this.add_one(model);
+        }, this);
+      }
     };
 }(), {
   selected: function() {
