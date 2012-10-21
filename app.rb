@@ -71,6 +71,11 @@ end
 get '/user/signout' do
 end
 
+get '/page/:pid/blocks' do
+  page = Page.by_id(params[:pid]);
+  page.load_blocks.to_s;
+end
+
 post '/page/:pid/block' do
   page  = Page.by_id(params[:pid])
   block = page.add_block(JSON.parse(request.body.read))
