@@ -55,7 +55,6 @@ window.BlockList = Backbone.Collection.extend(function(){
         edges.push(model.attributes.top + model.view.$el.height());
       }
     });
-    c.log('edges ', edges);
     return _.uniq(edges);
   },
   closestEdge: function(models, side, n) {

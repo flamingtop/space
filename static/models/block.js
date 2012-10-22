@@ -16,7 +16,6 @@ window.Block = Backbone.Model.extend({
       .bind('block:edit:save', function() {
         var text = $.trim(this.editor.$el.find('textarea').val());
         if(!text.length) text = 'It\'s empty.';
-        c.log(this);
         if(this.isNew()) window.blocks.add(this);
         this.save({'raw':text});
       }, this)
@@ -34,7 +33,6 @@ window.Block = Backbone.Model.extend({
       .bind('destroy', function() {
         this.view.$el.fadeOut(function(el){
           $(this).remove();
-          c.log('block destroyed ', this);          
         });
       }, this)
       .bind('sync', function() {
@@ -42,7 +40,6 @@ window.Block = Backbone.Model.extend({
           .hide()
           .replaceWith(this.view.render().$el)
           .fadeIn();
-        c.log('block synced ', this);
       }, this)
       .bind('select', function(e) {
         this.selected = true;
@@ -56,7 +53,6 @@ window.Block = Backbone.Model.extend({
         confirm("Sure?") && this.destroy(); 
       }, this)
       .bind('change', function() {
-        c.log('Changed attributes:', this.changedAttributes());
       },this);
   }
   

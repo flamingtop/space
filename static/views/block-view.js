@@ -67,7 +67,6 @@ window.BlockView = Backbone.View.extend({
         //ghost: true,
         containment: 'parent',
         stop: function(e, ui) {
-          c.log($.extend(ui.size, ui.position));
           that.model.save(ui.size);
         }
       });
