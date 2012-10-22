@@ -2,7 +2,6 @@ window.PageView = Backbone.View.extend({
   el: $('#page'),
   initialize: function() {
     var that = this;
-    //
     that.$el
       .width(this.model.get('width'))
       .height(this.model.get('height'))
@@ -44,24 +43,24 @@ window.PageView = Backbone.View.extend({
       .find('title').text(that.model.get('title'))
       .end()
       .bind('keydown', 'shift', function() {
-        that.$el.draggable('option', 'axis', 'x');
-        that.$el.find('.block')
-          .draggable('option', 'helper', 'clone')
-          .resizable('option', 'aspectRatio', true);
-        c.log('Block draggable helper: clone');
+        that.$el
+          .draggable('option', 'axis', 'x')
+          .find('.block')
+            .draggable('option', 'helper', 'clone')
+            .resizable('option', 'aspectRatio', true);
       })
       .bind('keyup', 'shift', function() {
-        that.$el.draggable('option', 'axis', 'y');
-        that.$el.find('.block')
-          .draggable('option', 'helper', 'original')
-          .resizable('option', 'aspectRatio', false);
-        c.log('Block draggable helper: original');
+        that.$el
+          .draggable('option', 'axis', 'y')
+          .find('.block')
+            .draggable('option', 'helper', 'original')
+            .resizable('option', 'aspectRatio', false);
       })
       .bind('keydown', 'shift+d', function(e) {
         e.preventDefault();
         var selected = BlockList.selected();
-        c.log(selected); 
-        if(!selected.length || !confirm('Delete'+selected.length+' items?'))
+        if(!selected.length ||
+           !confirm('Delete'+selected.length+' items?'))
           return false;
         _.each(selected, function(model) {
           model.destroy();
