@@ -1,3 +1,18 @@
+$.fn.selectRange = function(start, end) {
+    return this.each(function() {
+        if (this.setSelectionRange) {
+            this.focus();
+            this.setSelectionRange(start, end);
+        } else if (this.createTextRange) {
+            var range = this.createTextRange();
+            range.collapse(true);
+            range.moveEnd('character', end);
+            range.moveStart('character', start);
+            range.select();
+        }
+    });
+};
+
 window.EditView = Backbone.View.extend({
 
   initialize: function() {
@@ -12,9 +27,23 @@ window.EditView = Backbone.View.extend({
         e.preventDefault();
         that.model.trigger('block:edit:save');
       })
+      .bind('keydown', _.debounce(function(e) {
+        var text = that.$el.find('textarea').val();
+        var last_line = _.last(text.split("\n"));
+        if(last_line.charAt(0) == ':') {
+          var token = last_line.split(' ')[0].substr(1);
+
+          if(-1 == $.inArray(token, ['css', 'tags', 'title', 'slug', 'type'])) return;
+
+          var text = text.replace(':'+token, '<'+token+'></'+token+'>');
+          that.$el.find('textarea').val(text);
+          var caret_pos = text.length - (token.length + 3);
+          that.$el.find('textarea').selectRange(caret_pos, caret_pos);
+        }
+      }, 500))
       .bind('keydown', _.debounce(function(e){
-        if(e.keyCode != 27)
-          that.model.trigger('block:edit:save');
+        if(e.keyCode == 27) return;
+        that.model.trigger('block:edit:save');
       }, 1000));
     that.$el.find('.close').click(function(){
       that.model.trigger('block:edit:end');

@@ -28,12 +28,12 @@ window.BlockList = Backbone.Collection.extend(function(){
     };
 }(), {
   selected: function() {
-    return _.filter(App.collection.models, function(model){
+    return _.filter(blocks.models, function(model){
       return model.selected;
     });
   },
   unselected: function() {
-    return _.filter(App.collection.models, function(model){
+    return _.filter(blocks.models, function(model){
       return !model.selected;
     });
   },
