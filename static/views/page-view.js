@@ -1,20 +1,15 @@
 window.PageView = Backbone.View.extend({
-  
   el: $('#page'),
-  
   initialize: function() {
-    
     var that = this;
-
-    // 
-    that.$el.bind('dblclick', function(e) {
-      (new Block({top:e.pageY, left:e.pageX, raw:''})).trigger('block:edit:start');
-    });
-    
     //
     that.$el
       .width(this.model.get('width'))
       .height(this.model.get('height'))
+      .bind('dblclick', function(e) {
+        (new Block({top:e.pageY, left:e.pageX, raw:''}))
+          .trigger('block:edit:start');
+      })
       .draggable({
         cursor: "move",
         axis: "y",
@@ -46,6 +41,8 @@ window.PageView = Backbone.View.extend({
     
     //
     $(document)
+      .find('title').text(that.model.get('title'))
+      .end()
       .bind('keydown', 'shift', function() {
         that.$el.draggable('option', 'axis', 'x');
         that.$el.find('.block')
@@ -60,12 +57,12 @@ window.PageView = Backbone.View.extend({
           .resizable('option', 'aspectRatio', false);
         c.log('Block draggable helper: original');
       })
-      .bind('keyup', 'ctrl+d', function(e) {
-        // not binding to the 'del' command is because 
-        // mac has a different 'del' than pc keboards
+      .bind('keydown', 'shift+d', function(e) {
         e.preventDefault();
         var selected = BlockList.selected();
-        if(!selected.length || !confirm('Delete'+selected.length+' items?')) return false;
+        c.log(selected); 
+        if(!selected.length || !confirm('Delete'+selected.length+' items?'))
+          return false;
         _.each(selected, function(model) {
           model.destroy();
         });

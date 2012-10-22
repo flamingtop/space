@@ -18,7 +18,7 @@ window.BlockView = Backbone.View.extend({
     },
     'click': function(e) {
       e.stopPropagation();
-      if(e.altKey) {
+      if(e.shiftKey) {
         if(this.model.selected)
           this.model.trigger('deselect', e);
         else
