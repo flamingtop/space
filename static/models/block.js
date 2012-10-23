@@ -33,6 +33,7 @@ window.Block = Backbone.Model.extend({
       .bind('destroy', function() {
         this.view.$el.fadeOut(function(el){
           $(this).remove();
+          blocks.listview.render();
         });
       }, this)
       .bind('sync', function() {
@@ -40,20 +41,28 @@ window.Block = Backbone.Model.extend({
           .hide()
           .replaceWith(this.view.render().$el)
           .fadeIn();
+        this.collection.listview.render();
       }, this)
-      .bind('select', function(e) {
+      .bind('block:select', function(e) {
         this.selected = true;
         this.view.$el.addClass('selected');
+        this.collection.listview.$el.find('#'+this.cid).addClass('selected');
       }, this)
-      .bind('deselect', function() {
+      .bind('block:deselect', function() {
         this.selected = false;
         this.view.$el.removeClass('selected');
-      }, this)
+        this.collection.listview.$el.find('#'+this.cid).removeClass('selected');       }, this)
       .bind('delete', function() {
         confirm("Sure?") && this.destroy(); 
       }, this)
       .bind('change', function() {
-      },this);
+      },this)
+      .bind('block:focus', function() {
+        $('html,body').animate({
+          scrollTop: this.get('top')+'px',
+          scrollLeft: this.get('left')+'px'
+        });
+      }, this);
   }
   
 });

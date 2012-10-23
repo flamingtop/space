@@ -16,14 +16,21 @@
       <textarea rows="30"></textarea>
     </div>
 
+    <div id="block-list-view">
+      <ul></ul>
+    </div>
+
     <div id="guidelines" style="width:100px;">
       <div id="glv"></div>
       <div id="glh"></div>
     </div>
 
-
-
     <!--templates-->
+    <script type="text/template" id="template-block-list-items">
+      {{#blocks}}
+      <li id="{{cid}}" class="{{#selected}}selected{{/selected}}">{{attributes.title}}</li>
+      {{/blocks}}
+    </script>
     
     <script type="text/template" id="template-editbox">
       <div class="editview" style="position:absolute;top:{{top}}px;left:{{left}}px;width:500px;">
@@ -67,6 +74,7 @@
     <script src="/models/blocklist.js"></script>
     <script src="/views/page-view.js"></script>
     <script src="/views/page-edit-view.js"></script>
+    <script src="/views/block-list-view.js"></script>
     <script src="/views/block-view.js"></script>    
     <script src="/views/block-edit-view.js"></script>
     <script src="/views/block-toolbox-view.js"></script>

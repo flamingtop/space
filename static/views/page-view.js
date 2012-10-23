@@ -92,7 +92,21 @@ window.PageView = Backbone.View.extend({
           that.model.trigger('page:edit:end');
         else
           that.model.trigger('page:edit:start');
+      })
+      .bind('keypress', '`', function(e) {
+        if(blocks.listview.opened === true) {
+          blocks.listview.$el.animate({
+            left:'-500px'
+          });
+          blocks.listview.opened = false;
+        } else {
+          blocks.listview.$el.animate({
+            left:'0px'
+          });
+          blocks.listview.opened = true;
+        }
       });
+    
   }
 
 });

@@ -20,9 +20,9 @@ window.BlockView = Backbone.View.extend({
       e.stopPropagation();
       if(e.shiftKey) {
         if(this.model.selected)
-          this.model.trigger('deselect', e);
+          this.model.trigger('block:deselect');
         else
-          this.model.trigger('select', e);
+          this.model.trigger('block:select');
       }
     }
   },

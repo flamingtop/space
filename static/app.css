@@ -138,3 +138,42 @@ html * {
     padding:0;
     background:#fff;
 }
+
+#block-list-view {
+    position:fixed;
+    top:100px;
+    left:-500px;
+    padding:30px;
+    background:#fff;
+    -moz-box-shadow:    3px 5px 20px #666;
+    -webkit-box-shadow: 3px 5px 20px #666;
+    box-shadow:         3px 5px 20px #666;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+}
+
+#block-list-view:hover{
+    cursor:pointer;
+}
+
+#block-list-view ul {
+    list-style-type:none;
+    margin:0;
+    padding:0;
+}
+
+#block-list-view ul li {
+    padding:.1em;
+    margin:0;
+    margin-bottom:.1em;
+    border-bottom:1px dotted #eef;
+}
+
+#block-list-view ul li.hover {
+    background:#eee;
+}
+
+#block-list-view ul li.selected {
+    background:#000;
+    color:#fff;
+}

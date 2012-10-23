@@ -9,9 +9,13 @@ window.BlockList = Backbone.Collection.extend(function(){
       model: Block,
       url: '/page/' + PAGE.id + '/blocks',
       initialize: function() {
+        var that = this;
+
+        this.listview = new BlockListView({collection:this});
         this
           .bind('reset', function(collection) {
             this.add_all(collection.models);
+            this.listview.render();
           }, this)
           .bind('add', function(model) {
             this.add_one(model);
