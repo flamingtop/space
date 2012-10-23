@@ -22,7 +22,8 @@ window.PageView = Backbone.View.extend({
           var new_page_height = that.$el.height() + Math.abs(delta_top);
 
           var changes = {};
-          if(that.$el.draggable('option', 'axis') == 'y') {
+          var axis = that.$el.draggable('option', 'axis');
+          if(axis == 'y') {
             changes = {height:new_page_height};
           } else {
             changes = {width:new_page_width}
@@ -30,8 +31,11 @@ window.PageView = Backbone.View.extend({
           that.model.save(changes, {
             success: function(model, resp, callback) {
               _.each(blocks.models, function(model){
-                model.save({ top: model.get('top') + delta_top,
-                             left: model.get('left') + delta_left });
+                if(axis == 'y') {
+                  model.save({top: model.get('top') + delta_top});
+                } else {
+                  model.save({left: model.get('left') + delta_left });
+                }
               });
             }
           });
@@ -82,9 +86,9 @@ window.PageView = Backbone.View.extend({
         e.preventDefault();          
         BlockList.moveSelected('down');
       })
-      .bind('keypress', '`', function(e) {
+      .bind('keydown', 'esc', function(e) {
         e.preventDefault();
-        if(that.model.editor.on === true)
+        if(that.model.editor.opened === true)
           that.model.trigger('page:edit:end');
         else
           that.model.trigger('page:edit:start');

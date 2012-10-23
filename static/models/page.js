@@ -35,11 +35,12 @@ window.Page  = Backbone.Model.extend({
     /// 
     this
       .on('page:edit:start', function(){
-        this.editor.on = true;
+        this.editor.opened = true;
         this.editor.show();
-        this.editor.$el.find('textarea').focus().val(this.get('raw'));    }, this)
+        this.editor.$el.find('textarea').focus().val(this.get('raw'));
+      }, this)
       .on('page:edit:end', function(){
-        this.editor.on = false;
+        this.editor.opened = false;
         this.editor.hide();
         this.editor.$el.find('textarea').blur();
         var raw = $.trim(this.editor.$el.find('textarea').val());
