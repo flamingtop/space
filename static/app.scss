@@ -1,0 +1,134 @@
+@mixin box-shadow {
+   -moz-box-shadow:    -2px 5px 25px #555;
+    -webkit-box-shadow: -2px 5px 25px #555;
+    box-shadow:         -2px 5px 25px #555;
+}
+
+@mixin box-rounded-corner($radius) {
+     -moz-border-radius: $radius;
+    border-radius: $radius;
+}
+
+@mixin box-opacity($opacity) {
+    -moz-opacity:$opacity / 100;
+    filter:alpha(opacity=$opacity);
+    opacity:$opacity / 100;
+}
+
+html,body {
+    margin: 0;
+    padding: 0;
+    font-size: 13px;    
+}
+
+html * {
+    font-family: Tahoma, sans-serif;
+}
+
+#page {
+    position:relative;
+    top:0;
+    left:0;
+    width:100%;
+    height:1000px;
+    .block {
+        margin:0;
+        padding:10px;
+    }
+    .block:hover{
+        cursor: pointer;
+    }
+    .block.selected {
+        color:#fff;
+        background:#333;
+    }
+    .block .content pre {
+        margin:0;
+        padding:0;
+    }
+}
+
+.editview {
+    padding:.5em;
+    background-color:#fff;
+    @include box-shadow;
+    @include box-rounded-corner(5px);
+    textarea {
+        outline: 0;
+        border: 0;
+        background-color:#fff;
+    }
+}
+
+#page-edit-box {
+    position:fixed;
+    top:-1000px;
+    left:100px;
+    width:300px;
+    padding:.5em;
+    background:#fff;
+    @include box-shadow;
+    @include box-rounded-corner(5px);
+    z-index: 5000;
+    textarea {
+        width:100%;
+        border:0;
+        outline:0;
+        margin:0;
+        padding:0;
+        background:#fff;
+    }
+}
+
+#block-list-view {
+    position:fixed;
+    top:100px;
+    left:-500px;
+    padding:30px;
+    background:#fff;
+    z-index: 10000;
+    @include box-shadow;
+    @include box-rounded-corner(5px);
+    &:hover{
+        cursor:pointer;
+    }
+    ul {
+        list-style-type:none;
+        margin:0;
+        padding:0;
+        li {
+            padding:.1em;
+            margin:0;
+            margin-bottom:.1em;
+        }
+        li.hover {
+            background:#eee;
+        }
+        li.selected {
+            background:#000;
+            color:#fff;
+        }
+        
+    }
+}
+
+
+#glv, #glh {
+    position:absolute;
+    top:0;
+    left:0;
+    background:#eee;
+    border:0;
+    padding:0
+}
+#glv {
+    width:1px;
+    height:100%;
+}
+
+#glh {
+    width:100%;
+    height:1px;
+}
+
+.clear{ clear:both; }

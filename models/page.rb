@@ -1,7 +1,28 @@
+# -*- coding: utf-8 -*-
 require 'neography'
 require 'json'
 require 'base32/crockford'
 require 'nokogiri'
+require 'unidecode'
+
+# put in extensions.rb
+String.class_eval do
+  def to_slug
+    self.transliterate.downcase.gsub(/[^a-z0-9 ]/, ' ').strip.gsub(/[ ]+/, '-')
+  end
+
+  # differs from the 'to_slug' method in that it leaves in the dot '.'
+  # character and removes Windows' crust from paths (removes
+  # "C:\Temp\" from "C:\Temp\mieczyslaw.jpg")
+  def sanitize_as_filename
+    self.gsub(/^.*(\\|\/)/, '').transliterate.downcase.gsub(/[^a-z0-9\. ]/, ' ').strip.gsub(/[ ]+/, '-')
+  end
+
+  def transliterate
+    # Unidecode gem is missing some hyphen transliterations
+    self.gsub(/[-‐‒–—―⁃−­]/, '-').to_ascii
+  end
+end
 
 class Text
   attr_accessor :raw, :html, :clean 
@@ -26,7 +47,8 @@ class Text
       ele.remove()
     end
     doc.css('slug').each do |ele|
-      @slug = ele.text.strip.to_slug
+      slug = ele.text.strip.to_slug
+      @slug = slug if slug.length
       ele.remove()
     end
     doc.css('style').each do |ele|
@@ -68,6 +90,7 @@ class Text
 end
 
 class Node
+  attr_reader :old
 
   # node types
   NODE_TYPE_PAGE  = :page
@@ -85,14 +108,22 @@ class Node
   R_CAN_EDIT_PAGE_DELETE_BLOCK = :CAN_EDIT_PAGE_DELETE_BLOCK
 
   # indexes
-  IDX_ID   = :node_id
-  IDX_USER = :user
-  IDX_PAGE = :page
+  IDX_NODE    = :nodes
+  IDX_USER    = :users
+  IDX_PAGE    = :pages
 
   # common fields
   F_ID = {:field => :id, :default => nil, :config => [:id]}
 
   @@db = Neography::Rest.new
+
+  def self.db=(db)
+    @@db = db
+  end
+
+  def self.db
+    @@db
+  end
 
   attr_accessor :node
   
@@ -123,13 +154,24 @@ class Node
   def before_save
   end
 
+  def changed? property
+    instance_variable_get('@'+property.to_s) != @old[property]
+  end
+
   def save
-    before_save
     if is_new?
-      @id =  gen_id
+      @id = gen_id
+      before_save      
       @node = create
-      @@db.add_node_to_index(IDX_ID, :id, @id, @node)
+      new_node =  self.class.new(@node)
+      if new_node.id == @id
+        # it's a fresh node, otherwise an existing node is returned
+        @@db.add_node_to_index(IDX_NODE, :id, @id, @node)
+      else
+        return new_node
+      end
     else
+      before_save
       @@db.set_node_properties(@node, to_hash)
     end
     self
@@ -141,7 +183,7 @@ class Node
 
   def self.by_id(id)
     begin
-      node = @@db.get_node_index(IDX_ID, :id, id)
+      node = @@db.get_node_index(IDX_NODE, :id, id).first
     rescue => ex
       nil
     else
@@ -151,11 +193,14 @@ class Node
 
   # populate node variables from a hash or json object
   def reset(data)
-    if data.respond_to?('first') and data.first.is_a? Hash and data.first['data']
+    @old = {}
+    # data is a Neo Rest response
+    if data.is_a? Hash and data.key? 'all_relationships' and data.key? 'data'
       @node = data
-      data = data.first['data']
+      data = data['data']
     end
-    if !data.is_a?(Hash)
+
+    if !data.is_a? Hash
       data = JSON.parse data
     end
     data = Hash[data.map {|k,v| k.respond_to?(:to_sym) ? [k.to_sym, v] : [k, v]}]
@@ -163,37 +208,33 @@ class Node
       self.class.send(:attr_accessor, f[:field])
       value = data[f[:field]] || (is_new? ? f[:default] : instance_variable_get('@'+f[:field].to_s))
       instance_variable_set( '@'+f[:field].to_s, value)
+      @old[f[:field]] = value
     end
     self
   end
-  
-  def update(data)
-    reset(data).save
-  end
-  
+
   def delete
     @@db.delete_node!(@node)
   end
-
 end
 
 
 class Page < Node
   def schema
-    [{:field => :slug   , :default => nil},
+    [{:field => :slug   , :default => ''},
      {:field => :type   , :default => NODE_TYPE_PAGE},
      {:field => :title  , :default => 'untitled'},
      {:field => :width  , :default => '100%'},
      {:field => :height , :default => 'auto'},
      {:field => :tags   , :default => [].to_s},
      {:field => :raw    , :default => ''},
-     {:field => :html    , :default => ''},     
+     {:field => :html   , :default => ''},     
      {:field => :style  , :default => ''}] << F_ID
   end
 
   def self.by_slug(slug)
     begin
-      page = @@db.get_node_index(IDX_PAGE, :slug, slug)
+      page = @@db.get_node_index(IDX_PAGE, :slug, slug).first
     rescue => ex
       nil
     else
@@ -218,8 +259,7 @@ class Page < Node
   
   def load_blocks()
     blocks = []
-    query = "start n=node:#{IDX_ID}(id='#{@id}') match n-[#{R_HAS_BLOCK}]->m return m";
-    @@db.execute_query(query)['data'].each do |item|
+    query = "start n=node:#{IDX_NODE}(id='#{@id}') match n-[#{R_HAS_BLOCK}]->m return m";    @@db.execute_query(query)['data'].each do |item|
       blocks.push Block.new(item.first['data'])
     end
     blocks
@@ -240,8 +280,6 @@ class Page < Node
   end
 end
 
-
-
 class Block < Node
   def schema
     [{:field => :type   , :default => NODE_TYPE_BLOCK},
@@ -257,11 +295,13 @@ class Block < Node
   end
 
   def before_save
-    t = Text.new(@raw)
-    @style = t.style
-    @title = t.title
-    @tags  = JSON.generate t.tags
-    @html  = t.to_html
+    if changed? :raw
+      t = Text.new(@raw)
+      @style = t.style
+      @title = t.title
+      @tags  = JSON.generate t.tags
+      @html  = t.to_html
+    end
   end
 end
 
@@ -288,7 +328,7 @@ class User < Node
 
   def self.by_email(email)
     begin 
-      node = @@db.get_node_index(IDX_USER, :email, email)
+      node = @@db.get_node_index(IDX_USER, :email, email).first
     rescue => ex
       AnonymousUser.new
     else
@@ -303,7 +343,22 @@ class User < Node
   end
   
   def create
-    @@db.create_unique_node(IDX_USER, :email, @email, to_hash)    
+    @@db.create_unique_node(IDX_USER, :email, @email, to_hash)
+  end
+
+  def gen_password password
+    require 'digest/sha1'
+    @password = Digest::SHA1.hexdigest password+@id
+  end
+
+  def before_save
+    if changed? :password
+      gen_password @password
+    end
+    if changed? :email
+      # changing email not allowed
+      @email = @old[:email]
+    end
   end
 
   def can_edit_page?(page)

@@ -4,7 +4,7 @@ window.PageView = Backbone.View.extend({
     var that = this;
     that.$el
       .width(this.model.get('width'))
-      .height(this.model.get('height'))
+      .height(this.model.get('height') == 'auto' ? '2048px' : this.model.get('height'))
       .bind('dblclick', function(e) {
         (new Block({top:e.pageY, left:e.pageX, raw:''}))
           .trigger('block:edit:start');

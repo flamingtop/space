@@ -4,26 +4,6 @@ require 'json'
 require 'yaml'
 require './models/page.rb'
 
-require 'unidecode'
-# put in extensions.rb
-String.class_eval do
-  def to_slug
-    self.transliterate.downcase.gsub(/[^a-z0-9 ]/, ' ').strip.gsub(/[ ]+/, '-')
-  end
-
-  # differs from the 'to_slug' method in that it leaves in the dot '.'
-  # character and removes Windows' crust from paths (removes
-  # "C:\Temp\" from "C:\Temp\mieczyslaw.jpg")
-  def sanitize_as_filename
-    self.gsub(/^.*(\\|\/)/, '').transliterate.downcase.gsub(/[^a-z0-9\. ]/, ' ').strip.gsub(/[ ]+/, '-')
-  end
-
-  def transliterate
-    # Unidecode gem is missing some hyphen transliterations
-    self.gsub(/[-‐‒–—―⁃−­]/, '-').to_ascii
-  end
-end
-
 
 def return_html
   content_type 'text/html', :charset => 'utf-8'
@@ -113,7 +93,7 @@ get '/page/*' do
   slug = title.to_slug
   page  = Page.by_slug(slug)
   user = User.by_id(session[:uid])
-  
+
   if page.nil?
     if user.can_create_page?
       page = Page.new({:slug => slug, :title => title}).save
@@ -124,6 +104,7 @@ get '/page/*' do
   else
     if user.can_edit_page? page
       blocks = page.load_blocks
+      return blocks.to_s;
       erb :page, :locals => {:page => page.to_s, :blocks => blocks.to_s}
     else
       "Sorry, you are not authorized to edit this page."
