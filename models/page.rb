@@ -29,13 +29,13 @@ class Text
   attr_accessor :type, :style, :title, :tags, :slug
   def initialize(text)
     @raw = text
-    @html = ''
-    @clean = ''
-    @title = ''
-    @type = ''
-    @style = ''
-    @slug = ''
-    @tags = []
+    @html = nil
+    @clean = nil
+    @title = nil
+    @type = nil
+    @style = nil
+    @slug = nil
+    @tags = nil
     extract
   end
 
@@ -125,7 +125,8 @@ class Node
     @@db
   end
 
-  attr_accessor :node
+  attr_accessor :node, :is_new
+
   
   def initialize(data)
     reset data
@@ -144,7 +145,7 @@ class Node
   end
   
   def is_new?
-    !@id
+    @is_new
   end
 
   def gen_id
@@ -170,6 +171,7 @@ class Node
       else
         return new_node
       end
+      @is_new = false
     else
       before_save
       @@db.set_node_properties(@node, to_hash)
@@ -179,10 +181,6 @@ class Node
 
   def create
     @@db.create_node(to_hash)
-  end
-
-  def update(data)
-    reset(data).save
   end
 
   def self.by_id(id)
@@ -207,14 +205,34 @@ class Node
     if !data.is_a? Hash
       data = JSON.parse data
     end
+
     data = Hash[data.map {|k,v| k.respond_to?(:to_sym) ? [k.to_sym, v] : [k, v]}]
+
     schema.each do |f|
-      self.class.send(:attr_accessor, f[:field])
-      value = data[f[:field]] || (is_new? ? f[:default] : instance_variable_get('@'+f[:field].to_s))
-      instance_variable_set( '@'+f[:field].to_s, value)
-      @old[f[:field]] = value
+      field, default = f[:field], f[:default]
+      v = data.has_key?(field) ? data[field] : default
+      self.class.send(:attr_accessor, field)
+      instance_variable_set( '@'+f[:field].to_s, v)
+      @old[f[:field]] = v
     end
+
+    @is_new = false
+    @is_new = true if @id.nil?
+
     self
+  end
+
+  def valid_field? field 
+    schema.select { |f| f[:field].to_s == field.to_s }.size > 0
+  end
+
+  def update(data)
+    data.each_pair do |field, value|
+      if valid_field? field
+        instance_variable_set('@'+field.to_s, value)
+      end
+    end
+    save
   end
 
   def delete
@@ -253,12 +271,13 @@ class Page < Node
   end
 
   def before_save
+    # do it only when raw data is served
     if @raw.strip.length > 0
       t = Text.new(@raw)
-      @style = t.style
-      @title = t.title
-      @slug  = t.slug
-      @tags  = JSON.generate t.tags
+      @style = t.style unless t.style.nil?
+      @title = t.title unless t.title.nil?
+      @slug  = t.slug unless t.slug.nil?
+      @tags  = JSON.generate t.tags unless t.tags.nil?
       @html  = t.to_html
     end
   end
@@ -272,11 +291,8 @@ class Page < Node
   end
   
   def add_block(block)
+    raise 'not a proper block' if !block.is_a? Block
     save if is_new?
-    if !block.is_a? Block
-      block = Block.new(block)
-      block.save
-    end
     @@db.create_relationship(R_HAS_BLOCK, @node, block.node)
     block
   end
@@ -301,11 +317,17 @@ class Block < Node
   end
 
   def before_save
-    t = Text.new(@raw)
-    @style = t.style
-    @title = t.title
-    @tags  = JSON.generate t.tags
-    @html  = t.to_html
+    if is_new? or changed? :raw
+      t = Text.new(@raw)
+      @style = t.style unless t.style.nil?
+      if t.title.nil?
+        @title = t.clean.strip.split(' ').slice(0,7).join(' ')
+      else
+        @title = t.title
+      end
+      @tags  = JSON.generate t.tags unless t.tags.nil?
+      @html  = t.to_html
+    end
   end
 end
 
@@ -313,9 +335,9 @@ end
 class User < Node
   def schema
     [{:field => :type         , :default => NODE_TYPE_USER},
-     {:field => :email        , :default => nil},
-     {:field => :password     , :default => nil},
-     {:field => :display_name , :default => nil}] << F_ID
+     {:field => :email        , :default => ''},
+     {:field => :password     , :default => ''},
+     {:field => :display_name , :default => ''}] << F_ID
   end
 
   def self.by_id(id)

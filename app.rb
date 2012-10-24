@@ -58,7 +58,8 @@ end
 
 post '/page/:pid/block' do
   page  = Page.by_id(params[:pid])
-  block = page.add_block(JSON.parse request.body.read)
+  block = Block.new(JSON.parse request.body.read).save
+  block = page.add_block(block)
   block.to_s
 end
 
