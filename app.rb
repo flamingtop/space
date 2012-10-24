@@ -58,7 +58,7 @@ end
 
 post '/page/:pid/block' do
   page  = Page.by_id(params[:pid])
-  block = page.add_block(JSON.parse(request.body.read))
+  block = page.add_block(JSON.parse request.body.read)
   block.to_s
 end
 
@@ -90,8 +90,10 @@ get '/page/*' do
   return_html
   
   title = params[:splat].first
+
   slug = title.to_slug
   page  = Page.by_slug(slug)
+
   user = User.by_id(session[:uid])
 
   if page.nil?
@@ -104,7 +106,6 @@ get '/page/*' do
   else
     if user.can_edit_page? page
       blocks = page.load_blocks
-      return blocks.to_s;
       erb :page, :locals => {:page => page.to_s, :blocks => blocks.to_s}
     else
       "Sorry, you are not authorized to edit this page."

@@ -161,7 +161,7 @@ class Node
   def save
     if is_new?
       @id = gen_id
-      before_save      
+      before_save
       @node = create
       new_node =  self.class.new(@node)
       if new_node.id == @id
@@ -179,6 +179,10 @@ class Node
 
   def create
     @@db.create_node(to_hash)
+  end
+
+  def update(data)
+    reset(data).save
   end
 
   def self.by_id(id)
@@ -249,12 +253,14 @@ class Page < Node
   end
 
   def before_save
-    t = Text.new(@raw)
-    @style = t.style
-    @title = t.title
-    @slug = t.slug
-    @tags  = JSON.generate t.tags
-    @html  = t.to_html
+    if @raw.strip.length > 0
+      t = Text.new(@raw)
+      @style = t.style
+      @title = t.title
+      @slug  = t.slug
+      @tags  = JSON.generate t.tags
+      @html  = t.to_html
+    end
   end
   
   def load_blocks()
@@ -295,13 +301,11 @@ class Block < Node
   end
 
   def before_save
-    if changed? :raw
-      t = Text.new(@raw)
-      @style = t.style
-      @title = t.title
-      @tags  = JSON.generate t.tags
-      @html  = t.to_html
-    end
+    t = Text.new(@raw)
+    @style = t.style
+    @title = t.title
+    @tags  = JSON.generate t.tags
+    @html  = t.to_html
   end
 end
 
