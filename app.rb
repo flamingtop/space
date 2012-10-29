@@ -18,8 +18,6 @@ class App < Sinatra::Base
 
   enable :sessions # not the best way
 
-  set :public_folder, File.dirname(__FILE__) + '/static'
-
   before do
     return_json
   end
