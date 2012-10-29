@@ -411,7 +411,7 @@ class Group < Node
     [{:field => :type , :default => NODE_TYPE_GROUP},
      {:field => :name , :default => ''}]
   end
-
+ 
   def set_perm(rel, anynode)
     @@db.create_relationship(rel, @node, anynode.node)
   end

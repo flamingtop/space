@@ -1,2 +1,2 @@
-require './server.rb'
-run Lollypop
+require './app.rb'
+run App
