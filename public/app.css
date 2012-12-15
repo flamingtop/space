@@ -24,12 +24,64 @@ html * {
     margin: 0;
     padding: 0; }
 
+#header {
+  position: fixed;
+  margin: 0;
+  padding: 0;
+  top: 0;
+  left: 0;
+  width: 100%;
+  border: 0;
+  font-size: 1.1em;
+  -moz-box-shadow: 0px 5px 10px #555;
+  -webkit-box-shadow: 0px 5px 10px #555;
+  box-shadow: 0px 5px 10px #555;
+  -moz-opacity: 0.9;
+  filter: alpha(opacity=90);
+  opacity: 0.9; }
+  #header #logo {
+    position: fixed;
+    top: 2px;
+    left: 20px;
+    font-family: serif;
+    font-weight: bold; }
+  #header #toolbar ul {
+    margin: 0;
+    padding: 0;
+    list-style-type: none;
+    text-align: center; }
+    #header #toolbar ul li {
+      display: inline;
+      margin: 0;
+      padding: 0; }
+      #header #toolbar ul li button {
+        margin: 0;
+        background: transparent;
+        border: 0;
+        font-family: serif;
+        font-size: 96%; }
+    #header #toolbar ul li.separator {
+      color: #ccc; }
+  #header #toolbar-toggler {
+    position: fixed;
+    top: 0;
+    right: 0;
+    background: transparent; }
+    #header #toolbar-toggler button {
+      margin: 0;
+      background: transparent;
+      border: 0;
+      font-family: serif;
+      font-size: 96%; }
+    #header #toolbar-toggler .show {
+      display: none; }
+
 .editview {
   padding: .5em;
   background-color: #fff;
-  -moz-box-shadow: -2px 5px 25px #555555;
-  -webkit-box-shadow: -2px 5px 25px #555555;
-  box-shadow: -2px 5px 25px #555555;
+  -moz-box-shadow: 0px 5px 10px #555;
+  -webkit-box-shadow: 0px 5px 10px #555;
+  box-shadow: 0px 5px 10px #555;
   -moz-border-radius: 5px;
   border-radius: 5px; }
   .editview textarea {
@@ -44,9 +96,9 @@ html * {
   width: 300px;
   padding: .5em;
   background: #fff;
-  -moz-box-shadow: -2px 5px 25px #555555;
-  -webkit-box-shadow: -2px 5px 25px #555555;
-  box-shadow: -2px 5px 25px #555555;
+  -moz-box-shadow: 0px 5px 10px #555;
+  -webkit-box-shadow: 0px 5px 10px #555;
+  box-shadow: 0px 5px 10px #555;
   -moz-border-radius: 5px;
   border-radius: 5px;
   z-index: 5000; }
@@ -65,9 +117,9 @@ html * {
   padding: 30px;
   background: #fff;
   z-index: 10000;
-  -moz-box-shadow: -2px 5px 25px #555555;
-  -webkit-box-shadow: -2px 5px 25px #555555;
-  box-shadow: -2px 5px 25px #555555;
+  -moz-box-shadow: 0px 5px 10px #555;
+  -webkit-box-shadow: 0px 5px 10px #555;
+  box-shadow: 0px 5px 10px #555;
   -moz-border-radius: 5px;
   border-radius: 5px; }
   #block-list-view:hover {

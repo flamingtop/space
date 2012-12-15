@@ -5,6 +5,7 @@ require 'yaml'
 require './models/page.rb'
 
 
+
 def return_html
   content_type 'text/html', :charset => 'utf-8'
 end

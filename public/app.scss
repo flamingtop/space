@@ -1,7 +1,7 @@
 @mixin box-shadow {
-   -moz-box-shadow:    -2px 5px 25px #555;
-    -webkit-box-shadow: -2px 5px 25px #555;
-    box-shadow:         -2px 5px 25px #555;
+   -moz-box-shadow:    0px 5px 10px #555;
+    -webkit-box-shadow: 0px 5px 10px #555;
+    box-shadow:         0px 5px 10px #555;
 }
 
 @mixin box-rounded-corner($radius) {
@@ -13,6 +13,16 @@
     -moz-opacity:$opacity / 100;
     filter:alpha(opacity=$opacity);
     opacity:$opacity / 100;
+}
+
+@mixin toolbar-button {
+    button {
+        margin:0;
+        background:transparent;
+        border: 0;
+        font-family:serif;
+        font-size:96%;
+    }
 }
 
 html,body {
@@ -47,6 +57,57 @@ html * {
         padding:0;
     }
 }
+
+#header {
+    position:fixed;
+    margin:0;
+    padding:0;
+    top:0;
+    left:0;
+    width:100%;
+    border:0;
+    font-size:1.1em;
+    @include box-shadow;
+    @include box-opacity(90);
+    #logo {
+        position:fixed;
+        top:2px;
+        left:20px;
+        font-family:serif;
+        font-weight:bold;
+    };
+    #toolbar{
+        ul {
+            margin:0;
+            padding:0;
+            list-style-type:none;
+            text-align:center;
+            li {
+                display:inline;
+                margin:0;
+                padding:0;
+                @include toolbar-button;
+            };
+            li.separator {
+                color:#ccc;
+            }
+        }
+    }
+
+    #toolbar-toggler {
+        position:fixed;
+        top:0;
+        right:0;
+        background:transparent;
+        @include toolbar-button;
+        .show {
+            display:none;
+        }
+    }
+
+}
+
+
 
 .editview {
     padding:.5em;
